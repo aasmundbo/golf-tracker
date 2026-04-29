@@ -1,5 +1,6 @@
 import pytest
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.pool import StaticPool
 from httpx import AsyncClient, ASGITransport
 import database
 from database import Base, get_db
@@ -10,7 +11,13 @@ TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 @pytest.fixture
 async def client():
-    engine = create_async_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+    # StaticPool forces all connections to reuse the same underlying SQLite
+    # connection, so tables created by create_all are visible to every session.
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
