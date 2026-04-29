@@ -14,6 +14,7 @@ export default function MyCourses() {
 
   const [addingCourse, setAddingCourse] = useState(false)
   const [courseForm, setCourseForm] = useState(EMPTY_COURSE_FORM)
+  const [courseError, setCourseError] = useState(null)
 
   const [addingLayoutTo, setAddingLayoutTo] = useState(null)  // course_id
   const [layoutForm, setLayoutForm] = useState(EMPTY_LAYOUT_FORM)
@@ -56,22 +57,27 @@ export default function MyCourses() {
 
   const addCourse = async () => {
     if (!courseForm.name.trim()) return
-    const club = await api.post('/courses', {
-      name: courseForm.name,
-      city: courseForm.city,
-      country: courseForm.country,
-    })
-    if (courseForm.layout_name.trim()) {
-      await api.post(`/courses/${club.data.id}/layouts`, {
-        name: courseForm.layout_name,
-        slope: courseForm.slope ? parseFloat(courseForm.slope) : undefined,
-        course_rating: courseForm.course_rating ? parseFloat(courseForm.course_rating) : undefined,
-        par_total: courseForm.par_total ? parseInt(courseForm.par_total) : undefined,
+    setCourseError(null)
+    try {
+      const club = await api.post('/courses', {
+        name: courseForm.name,
+        city: courseForm.city,
+        country: courseForm.country,
       })
+      if (courseForm.layout_name.trim()) {
+        await api.post(`/courses/${club.data.id}/layouts`, {
+          name: courseForm.layout_name,
+          slope: courseForm.slope ? parseFloat(courseForm.slope) : undefined,
+          course_rating: courseForm.course_rating ? parseFloat(courseForm.course_rating) : undefined,
+          par_total: courseForm.par_total ? parseInt(courseForm.par_total) : undefined,
+        })
+      }
+      setAddingCourse(false)
+      setCourseForm(EMPTY_COURSE_FORM)
+      loadCourses()
+    } catch (err) {
+      setCourseError(err.response?.data?.detail ?? err.message ?? 'Noe gikk galt')
     }
-    setAddingCourse(false)
-    setCourseForm(EMPTY_COURSE_FORM)
-    loadCourses()
   }
 
   const deleteCourse = async (id) => {
@@ -132,7 +138,7 @@ export default function MyCourses() {
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">Mine baner</h2>
         <button
-          onClick={() => { setAddingCourse(!addingCourse); setCourseForm(EMPTY_COURSE_FORM) }}
+          onClick={() => { setAddingCourse(!addingCourse); setCourseForm(EMPTY_COURSE_FORM); setCourseError(null) }}
           className="bg-green-700 text-white px-3 py-1 rounded text-sm"
         >
           + Legg til bane
@@ -191,9 +197,12 @@ export default function MyCourses() {
               </div>
             </div>
           </div>
+          {courseError && (
+            <p className="text-red-600 text-sm">{courseError}</p>
+          )}
           <div className="flex gap-2">
-            <button onClick={addCourse} className="bg-green-700 text-white px-4 py-2 rounded flex-1 text-sm">Lagre</button>
-            <button onClick={() => { setAddingCourse(false); setCourseForm(EMPTY_COURSE_FORM) }} className="border px-4 py-2 rounded flex-1 text-sm">Avbryt</button>
+            <button type="button" onClick={addCourse} className="bg-green-700 text-white px-4 py-2 rounded flex-1 text-sm">Lagre</button>
+            <button type="button" onClick={() => { setAddingCourse(false); setCourseForm(EMPTY_COURSE_FORM); setCourseError(null) }} className="border px-4 py-2 rounded flex-1 text-sm">Avbryt</button>
           </div>
         </div>
       )}
