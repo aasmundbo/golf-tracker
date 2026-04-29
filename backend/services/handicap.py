@@ -1,7 +1,7 @@
 import math
 
 def calculate_playing_handicap(hcp_index: float, slope: float, course_rating: float, par: int) -> int:
-    return round(hcp_index * (slope / 113) + (course_rating - par))
+    return round(hcp_index * (slope / 113))
 
 def handicap_strokes_on_hole(hole_stroke_index: int | None, playing_handicap: int) -> int:
     if hole_stroke_index is None:
