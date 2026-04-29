@@ -20,6 +20,7 @@ async def start_round(data: RoundCreate, db: AsyncSession = Depends(get_db)):
         # Resolve club name: prefer explicit club_name, fall back to course_name
         club_label = data.club_name or data.course_name
         layout_label = data.course_name if data.club_name else 'Bane 1'
+        tee_label = data.tee_name or 'Default'
 
         # Reuse existing club with same name (case-insensitive) if possible
         club_result = await db.execute(
@@ -31,19 +32,37 @@ async def start_round(data: RoundCreate, db: AsyncSession = Depends(get_db)):
             db.add(club)
             await db.flush()
 
-        layout = LocalCourse(club_id=club.id, name=layout_label)
-        db.add(layout)
-        await db.flush()
-
-        tee = LocalTee(
-            course_id=layout.id,
-            name=data.tee_name or 'Default',
-            slope=data.slope,
-            course_rating=data.course_rating,
-            par_total=data.par_total,
+        # Reuse existing layout with same name for this club so hole data persists across rounds
+        layout_result = await db.execute(
+            select(LocalCourse).where(
+                LocalCourse.club_id == club.id,
+                LocalCourse.name == layout_label,
+            )
         )
-        db.add(tee)
-        await db.flush()
+        layout = layout_result.scalar_one_or_none()
+        if not layout:
+            layout = LocalCourse(club_id=club.id, name=layout_label)
+            db.add(layout)
+            await db.flush()
+
+        # Reuse existing tee with same name so hole data (par/SI) entered on round 1 pre-loads on round 2
+        tee_result = await db.execute(
+            select(LocalTee).where(
+                LocalTee.course_id == layout.id,
+                LocalTee.name == tee_label,
+            )
+        )
+        tee = tee_result.scalar_one_or_none()
+        if not tee:
+            tee = LocalTee(
+                course_id=layout.id,
+                name=tee_label,
+                slope=data.slope,
+                course_rating=data.course_rating,
+                par_total=data.par_total,
+            )
+            db.add(tee)
+            await db.flush()
 
         round_data['club_id'] = club.id
         round_data['club_name'] = club.name

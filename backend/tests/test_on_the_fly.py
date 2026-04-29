@@ -151,6 +151,33 @@ async def test_hole_data_preloads_on_second_round(client):
     assert h2["par"] == 3 and h2["stroke_index"] == 11
 
 
+async def test_on_the_fly_reuses_layout_and_tee_across_rounds(client):
+    """Two on-the-fly rounds for the same course share the same tee_id."""
+    r1 = await _start_round(client)
+    r2 = await _start_round(client)
+    assert r1["tee_id"] == r2["tee_id"]
+    assert r1["course_id"] == r2["course_id"]
+
+
+async def test_on_the_fly_hole_data_available_second_round(client):
+    """Par/SI entered via HoleDataPrompt on round 1 pre-loads without a prompt on round 2."""
+    r1 = await _start_round(client)
+    await client.post(f"/api/rounds/{r1['id']}/scores", json={
+        "hole_number": 1, "strokes": 5, "hole_par": 4, "hole_stroke_index": 7,
+    })
+    await client.post(f"/api/rounds/{r1['id']}/scores", json={
+        "hole_number": 2, "strokes": 3, "hole_par": 3, "hole_stroke_index": 11,
+    })
+
+    r2 = await _start_round(client)
+    assert r2["tee_id"] == r1["tee_id"]
+
+    holes = (await client.get(f"/api/courses/local/tees/{r2['tee_id']}/holes")).json()
+    by_hole = {h["hole_number"]: h for h in holes}
+    assert by_hole[1]["par"] == 4 and by_hole[1]["stroke_index"] == 7
+    assert by_hole[2]["par"] == 3 and by_hole[2]["stroke_index"] == 11
+
+
 async def test_two_rounds_same_course_name_reuse_club(client):
     payload = {
         "course_name": "Unique Course XYZ",
