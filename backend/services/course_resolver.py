@@ -1,8 +1,12 @@
+import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
 from models.course import LocalCourse, LocalClub
 from services import course_api
+from config import settings
+
+log = logging.getLogger(__name__)
 
 async def search(query: str, db: AsyncSession) -> list[dict]:
     result = await db.execute(
@@ -45,20 +49,24 @@ async def search(query: str, db: AsyncSession) -> list[dict]:
                 "country": club.country,
             })
 
-    try:
-        api_results = await course_api.search_courses(query, db)
-        api_formatted = [
-            {
-                "source": "api",
-                "id": f"api:{c['id']}",
-                "name": c.get("course_name", ""),
-                "club_name": c.get("club_name", ""),
-                "city": c.get("location", {}).get("city", ""),
-                "country": c.get("location", {}).get("country", ""),
-            }
-            for c in api_results
-        ]
-    except Exception:
+    if not settings.golf_course_api_key:
         api_formatted = []
+    else:
+        try:
+            api_results = await course_api.search_courses(query, db)
+            api_formatted = [
+                {
+                    "source": "api",
+                    "id": f"api:{c['id']}",
+                    "name": c.get("course_name", ""),
+                    "club_name": c.get("club_name", ""),
+                    "city": c.get("location", {}).get("city", ""),
+                    "country": c.get("location", {}).get("country", ""),
+                }
+                for c in api_results
+            ]
+        except Exception as exc:
+            log.warning("GolfCourseAPI search failed for %r: %s", query, exc)
+            api_formatted = []
 
     return local_results + api_formatted
