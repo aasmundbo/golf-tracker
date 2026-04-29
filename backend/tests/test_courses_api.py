@@ -57,6 +57,35 @@ async def test_delete_course(client):
     assert get_resp.status_code == 404
 
 
+async def test_delete_course_cascades_layouts_tees_and_holes(client):
+    club = await _create_club(client, "Losby GK")
+    cid = club["id"]
+
+    layout_resp = await client.post(f"/api/courses/{cid}/layouts", json={
+        "name": "Hvit",
+        "slope": 128.0,
+        "course_rating": 71.2,
+        "par_total": 72,
+    })
+    assert layout_resp.status_code == 200
+    layout_id = layout_resp.json()["id"]
+
+    tees_resp = await client.get(f"/api/courses/local/{layout_id}/tees")
+    tee_id = tees_resp.json()[0]["id"]
+
+    await client.post(
+        f"/api/courses/local/{layout_id}/tees/{tee_id}/holes",
+        json={"hole_number": 1, "par": 4, "stroke_index": 7},
+    )
+
+    del_resp = await client.delete(f"/api/courses/{cid}")
+    assert del_resp.status_code == 200
+
+    assert (await client.get(f"/api/courses/{cid}")).status_code == 404
+    assert (await client.get(f"/api/courses/{cid}/layouts")).json() == []
+    assert (await client.get(f"/api/courses/local/tees/{tee_id}/holes")).json() == []
+
+
 # ── search returns local results ──────────────────────────────────────────────
 
 async def test_search_returns_local_results(client):
