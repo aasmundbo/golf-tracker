@@ -81,7 +81,7 @@ export default function NewRound() {
         <h2 className="text-xl font-bold">Start without full course data</h2>
         {['course_name', 'slope', 'course_rating', 'hcp_index'].map(f => (
           <div key={f}>
-            <label className="block text-sm font-medium capitalize">{f.replace('_', ' ')}</label>
+            <label className="block text-sm font-medium capitalize">{{ hcp_index: 'Eksakt handicap' }[f] ?? f.replace('_', ' ')}</label>
             <input className="border rounded px-3 py-2 w-full" value={manualData[f]}
               onChange={e => setManualData(d => ({ ...d, [f]: e.target.value }))} />
           </div>
@@ -117,10 +117,10 @@ export default function NewRound() {
       )}
       {selectedTee && (
         <div>
-          <label className="block text-sm font-medium">Your Handicap Index</label>
+          <label className="block text-sm font-medium">Eksakt handicap</label>
           <input type="number" step="0.1" className="border rounded px-3 py-2 w-full"
             value={hcp} onChange={e => { setHcp(e.target.value); calcPlayingHcp(selectedTee, e.target.value) }} />
-          {playingHcp !== null && <p className="text-sm text-green-700 mt-1">Playing Handicap: <strong>{playingHcp}</strong></p>}
+          {playingHcp !== null && <p className="text-sm text-green-700 mt-1">Spillehandicap: <strong>{playingHcp}</strong></p>}
         </div>
       )}
       {selectedTee && hcp && (

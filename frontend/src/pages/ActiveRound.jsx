@@ -57,7 +57,7 @@ export default function ActiveRound() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="font-bold text-lg">{round.course_name}</h2>
-          <p className="text-sm text-gray-500">{round.tee_name} · HCP {round.hcp_index} → Playing {round.playing_handicap}</p>
+          <p className="text-sm text-gray-500">{round.tee_name} · Eksakt handicap {round.hcp_index} → Spillehandicap {round.playing_handicap}</p>
         </div>
         <button onClick={() => setShowScorecard(!showScorecard)} className="text-sm text-green-700 underline">
           {showScorecard ? 'Hide' : 'Scorecard'}
