@@ -17,6 +17,7 @@ async def search(query: str, db: AsyncSession) -> list[dict]:
         )
     )
     local = result.scalars().all()
+    matched_club_ids = {c.club_id for c in local if c.club_id is not None}
     local_results = [
         {
             "source": "local",
@@ -28,6 +29,21 @@ async def search(query: str, db: AsyncSession) -> list[dict]:
         }
         for c in local
     ]
+
+    # Also include clubs that matched but have no layouts yet
+    club_result = await db.execute(
+        select(LocalClub).where(LocalClub.name.ilike(f"%{query}%"))
+    )
+    for club in club_result.scalars().all():
+        if club.id not in matched_club_ids:
+            local_results.append({
+                "source": "local",
+                "id": f"local_club:{club.id}",
+                "name": club.name,
+                "club_name": club.name,
+                "city": club.city,
+                "country": club.country,
+            })
 
     try:
         api_results = await course_api.search_courses(query, db)

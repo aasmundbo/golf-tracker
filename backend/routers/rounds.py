@@ -48,7 +48,6 @@ async def start_round(data: RoundCreate, db: AsyncSession = Depends(get_db)):
         round_data['club_id'] = club.id
         round_data['club_name'] = club.name
         round_data['course_id'] = layout.id
-        round_data['course_name'] = layout_label
         round_data['tee_id'] = tee.id
         round_data['course_source'] = 'local'
 
