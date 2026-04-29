@@ -47,10 +47,29 @@ docker compose up -d --build golf-tracker-backend golf-tracker-frontend
 
 The app will be available at [golf-tracker.aasmundbo.com](http://golf-tracker.aasmundbo.com) once Traefik picks it up.
 
+## Database
+
+The SQLite database lives at `~/apps/golf-tracker/data/golf.db` on the host. It is bind-mounted into the container at `/app/data/golf.db` and contains:
+
+- **clubs** — courses and their layouts
+- **tees** — tee sets per layout (name, rating, slope, par)
+- **holes** — hole-by-hole par and stroke index for each tee set
+- **rounds** — round records (date, course, handicap index, playing handicap)
+- **scores** — hole-by-hole gross scores per round
+
+To wipe all data and start fresh:
+
+```bash
+cd ~/self-hosting
+docker compose stop golf-tracker-backend golf-tracker-frontend
+rm ~/apps/golf-tracker/data/golf.db
+docker compose up -d golf-tracker-backend golf-tracker-frontend
+```
+
 ## Project structure
 
 ```
 backend/    FastAPI + SQLAlchemy (SQLite), uvicorn
 frontend/   React + Vite + Tailwind, served by nginx with /api proxy to backend
-data/       SQLite database (volume-mounted, not committed)
+data/       SQLite database (bind-mounted from ~/apps/golf-tracker/data/, not committed)
 ```
