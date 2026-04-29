@@ -14,6 +14,10 @@ class ClubUpdate(BaseModel):
 class LayoutCreate(BaseModel):
     name: str
     external_api_id: Optional[str] = None
+    tee_name: Optional[str] = None
+    slope: Optional[float] = None
+    course_rating: Optional[float] = None
+    par_total: Optional[int] = None
 
 class LayoutUpdate(BaseModel):
     name: Optional[str] = None

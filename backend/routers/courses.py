@@ -40,8 +40,21 @@ async def list_layouts(course_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.post("/{course_id:int}/layouts")
 async def create_layout(course_id: int, data: LayoutCreate, db: AsyncSession = Depends(get_db)):
-    layout = LocalCourse(club_id=course_id, **data.model_dump())
+    layout = LocalCourse(
+        club_id=course_id,
+        name=data.name,
+        external_api_id=data.external_api_id,
+    )
     db.add(layout)
+    await db.flush()
+    if data.slope is not None or data.course_rating is not None:
+        db.add(LocalTee(
+            course_id=layout.id,
+            name=data.tee_name or 'Standard',
+            slope=data.slope,
+            course_rating=data.course_rating,
+            par_total=data.par_total,
+        ))
     await db.commit()
     await db.refresh(layout)
     return layout
