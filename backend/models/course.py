@@ -1,0 +1,47 @@
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy.orm import relationship
+from datetime import datetime
+from database import Base
+
+class LocalCourse(Base):
+    __tablename__ = "local_courses"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    city = Column(String)
+    country = Column(String)
+    external_api_id = Column(String)
+    is_verified = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    tees = relationship("LocalTee", back_populates="course", cascade="all, delete-orphan")
+
+class LocalTee(Base):
+    __tablename__ = "local_tees"
+    id = Column(Integer, primary_key=True)
+    course_id = Column(Integer, ForeignKey("local_courses.id"), nullable=False)
+    name = Column(String, nullable=False)
+    color = Column(String)
+    slope = Column(Float)
+    course_rating = Column(Float)
+    par_total = Column(Integer)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    course = relationship("LocalCourse", back_populates="tees")
+    holes = relationship("LocalHole", back_populates="tee", cascade="all, delete-orphan", order_by="LocalHole.hole_number")
+
+class LocalHole(Base):
+    __tablename__ = "local_holes"
+    id = Column(Integer, primary_key=True)
+    tee_id = Column(Integer, ForeignKey("local_tees.id"), nullable=False)
+    hole_number = Column(Integer, nullable=False)
+    par = Column(Integer)
+    stroke_index = Column(Integer)
+    distance_meters = Column(Integer)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    tee = relationship("LocalTee", back_populates="holes")
+
+class CourseApiCache(Base):
+    __tablename__ = "course_api_cache"
+    id = Column(Integer, primary_key=True)
+    external_id = Column(String, unique=True, nullable=False)
+    raw_json = Column(Text, nullable=False)
+    cached_at = Column(DateTime, default=datetime.utcnow)
