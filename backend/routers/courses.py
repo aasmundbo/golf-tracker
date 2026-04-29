@@ -80,7 +80,15 @@ async def update_course(course_id: int, data: ClubUpdate, db: AsyncSession = Dep
 
 @router.delete("/{course_id:int}")
 async def delete_course(course_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(LocalClub).where(LocalClub.id == course_id))
+    result = await db.execute(
+        select(LocalClub)
+        .options(
+            selectinload(LocalClub.courses)
+            .selectinload(LocalCourse.tees)
+            .selectinload(LocalTee.holes)
+        )
+        .where(LocalClub.id == course_id)
+    )
     club = result.scalar_one_or_none()
     if not club:
         raise HTTPException(404, "Course not found")

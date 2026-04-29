@@ -82,10 +82,14 @@ export default function MyCourses() {
 
   const deleteCourse = async (id) => {
     if (!confirm('Slett banen? Dette sletter alle varianter og teer.')) return
-    await api.delete(`/courses/${id}`)
-    setExpandedCourse(prev => (prev === id ? null : prev))
-    setLayouts(prev => { const n = { ...prev }; delete n[id]; return n })
-    loadCourses()
+    try {
+      await api.delete(`/courses/${id}`)
+      setExpandedCourse(prev => (prev === id ? null : prev))
+      setLayouts(prev => { const n = { ...prev }; delete n[id]; return n })
+      loadCourses()
+    } catch (err) {
+      alert(err.response?.data?.detail ?? err.message ?? 'Sletting feilet')
+    }
   }
 
   // ── Layout (variant) ─────────────────────────────────────────────────────────
