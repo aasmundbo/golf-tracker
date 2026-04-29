@@ -12,7 +12,7 @@ export default function ActiveRound() {
   const [round, setRound] = useState(null)
   const [stats, setStats] = useState(null)
   const [scores, setScores] = useState({})
-  const [holeData, setHoleData] = useState({}) // hole_number → {par, stroke_index} from local_holes
+  const [holeData, setHoleData] = useState({}) // hole_number → {par, stroke_index}
   const [currentHole, setCurrentHole] = useState(1)
   const [holeDataNeeded, setHoleDataNeeded] = useState(null)
   const [showScorecard, setShowScorecard] = useState(false)
@@ -20,7 +20,6 @@ export default function ActiveRound() {
 
   useEffect(() => { loadRound() }, [id])
 
-  // Fetch stored tee hole data once we know the tee_id
   useEffect(() => {
     if (!round?.tee_id) return
     api.get(`/courses/local/tees/${round.tee_id}/holes`)
@@ -35,7 +34,7 @@ export default function ActiveRound() {
   const loadRound = async () => {
     const [roundRes, liveRes] = await Promise.all([
       api.get(`/rounds/${id}`),
-      api.get(`/rounds/${id}/live`)
+      api.get(`/rounds/${id}/live`),
     ])
     setRound(roundRes.data)
     setStats(liveRes.data)
@@ -50,9 +49,13 @@ export default function ActiveRound() {
   const submitScore = async (holeNumber, strokes, holePar, holeStrokeIndex) => {
     const existing = scores[holeNumber]
     if (existing) {
-      await api.put(`/rounds/${id}/scores/${holeNumber}`, { strokes, hole_par: holePar, hole_stroke_index: holeStrokeIndex })
+      await api.put(`/rounds/${id}/scores/${holeNumber}`, {
+        strokes, hole_par: holePar, hole_stroke_index: holeStrokeIndex,
+      })
     } else {
-      await api.post(`/rounds/${id}/scores`, { hole_number: holeNumber, strokes, hole_par: holePar, hole_stroke_index: holeStrokeIndex })
+      await api.post(`/rounds/${id}/scores`, {
+        hole_number: holeNumber, strokes, hole_par: holePar, hole_stroke_index: holeStrokeIndex,
+      })
     }
     await loadRound()
     if (holeNumber < totalHoles) setCurrentHole(holeNumber + 1)
@@ -63,8 +66,12 @@ export default function ActiveRound() {
     navigate('/history')
   }
 
-  // Build the score object passed to HoleCard: existing score takes priority,
-  // then fall back to par/SI from the stored local hole so HoleDataPrompt is skipped.
+  const deleteRound = async () => {
+    if (!confirm('Slett denne runden?')) return
+    await api.delete(`/rounds/${id}`)
+    navigate('/')
+  }
+
   const resolveHoleScore = (holeNumber) => {
     const score = scores[holeNumber]
     if (score) return score
@@ -77,17 +84,26 @@ export default function ActiveRound() {
 
   if (!round) return <div className="mt-8 text-center">Loading…</div>
 
+  const courseLine = round.club_name
+    ? `${round.club_name} · ${round.course_name}`
+    : round.course_name
+
   const resolvedScore = resolveHoleScore(currentHole)
 
   return (
     <div className="space-y-4 mt-4">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="font-bold text-lg">{round.course_name}</h2>
-          <p className="text-sm text-gray-500">{round.tee_name} · Eksakt handicap {round.hcp_index} → Spillehandicap {round.playing_handicap}</p>
+          <h2 className="font-bold text-lg">{courseLine}</h2>
+          <p className="text-sm text-gray-500">
+            {round.tee_name} · Eksakt handicap {round.hcp_index} → Spillehandicap {round.playing_handicap}
+          </p>
         </div>
-        <button onClick={() => setShowScorecard(!showScorecard)} className="text-sm text-green-700 underline">
-          {showScorecard ? 'Hide' : 'Scorecard'}
+        <button
+          onClick={() => setShowScorecard(!showScorecard)}
+          className="text-sm text-green-700 underline"
+        >
+          {showScorecard ? 'Skjul' : 'Scorekort'}
         </button>
       </div>
 
@@ -121,16 +137,37 @@ export default function ActiveRound() {
 
       <div className="flex gap-2 flex-wrap">
         {Array.from({ length: totalHoles }, (_, i) => i + 1).map(h => (
-          <button key={h} onClick={() => setCurrentHole(h)}
-            className={`w-8 h-8 rounded text-sm font-medium ${scores[h] ? 'bg-green-600 text-white' : h === currentHole ? 'bg-green-100 border-2 border-green-600' : 'bg-gray-100'}`}>
+          <button
+            key={h}
+            onClick={() => setCurrentHole(h)}
+            className={`w-8 h-8 rounded text-sm font-medium ${
+              scores[h]
+                ? 'bg-green-600 text-white'
+                : h === currentHole
+                ? 'bg-green-100 border-2 border-green-600'
+                : 'bg-gray-100'
+            }`}
+          >
             {h}
           </button>
         ))}
       </div>
 
       {Object.keys(scores).length > 0 && round.status === 'active' && (
-        <button onClick={finishRound} className="w-full bg-gray-800 text-white py-2 rounded font-semibold">
-          Finish Round
+        <button
+          onClick={finishRound}
+          className="w-full bg-gray-800 text-white py-2 rounded font-semibold"
+        >
+          Avslutt runde
+        </button>
+      )}
+
+      {round.status === 'active' && (
+        <button
+          onClick={deleteRound}
+          className="w-full border border-red-300 text-red-500 py-2 rounded text-sm"
+        >
+          Slett runde
         </button>
       )}
     </div>

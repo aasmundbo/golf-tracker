@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database import get_db
 from models.round import Round, HoleScore
-from models.course import LocalCourse, LocalTee
+from models.course import LocalClub, LocalCourse, LocalTee
 from services.handicap import calculate_playing_handicap, calculate_live_stats
 from schemas.round import RoundCreate, RoundResponse
 
@@ -16,13 +16,27 @@ async def start_round(data: RoundCreate, db: AsyncSession = Depends(get_db)):
     )
     round_data = data.model_dump()
 
-    # Auto-create a local course+tee for on-the-fly rounds so hole data has somewhere to live
     if data.course_source == 'on_the_fly' and not data.tee_id:
-        course = LocalCourse(name=data.course_name)
-        db.add(course)
+        # Resolve club name: prefer explicit club_name, fall back to course_name
+        club_label = data.club_name or data.course_name
+        layout_label = data.course_name if data.club_name else 'Bane 1'
+
+        # Reuse existing club with same name (case-insensitive) if possible
+        club_result = await db.execute(
+            select(LocalClub).where(LocalClub.name.ilike(club_label))
+        )
+        club = club_result.scalar_one_or_none()
+        if not club:
+            club = LocalClub(name=club_label)
+            db.add(club)
+            await db.flush()
+
+        layout = LocalCourse(club_id=club.id, name=layout_label)
+        db.add(layout)
         await db.flush()
+
         tee = LocalTee(
-            course_id=course.id,
+            course_id=layout.id,
             name=data.tee_name or 'Default',
             slope=data.slope,
             course_rating=data.course_rating,
@@ -30,7 +44,11 @@ async def start_round(data: RoundCreate, db: AsyncSession = Depends(get_db)):
         )
         db.add(tee)
         await db.flush()
-        round_data['course_id'] = course.id
+
+        round_data['club_id'] = club.id
+        round_data['club_name'] = club.name
+        round_data['course_id'] = layout.id
+        round_data['course_name'] = layout_label
         round_data['tee_id'] = tee.id
         round_data['course_source'] = 'local'
 
@@ -56,6 +74,16 @@ async def get_round(round_id: int, db: AsyncSession = Depends(get_db)):
     if not round_:
         raise HTTPException(404)
     return round_
+
+@router.delete("/{round_id}")
+async def delete_round(round_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Round).where(Round.id == round_id))
+    round_ = result.scalar_one_or_none()
+    if not round_:
+        raise HTTPException(404)
+    await db.delete(round_)
+    await db.commit()
+    return {"ok": True}
 
 @router.put("/{round_id}/finish")
 async def finish_round(round_id: int, db: AsyncSession = Depends(get_db)):

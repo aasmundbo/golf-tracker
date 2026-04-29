@@ -3,6 +3,8 @@ from typing import Optional
 
 class RoundCreate(BaseModel):
     course_source: str = "on_the_fly"
+    club_id: Optional[int] = None
+    club_name: Optional[str] = None
     course_id: Optional[int] = None
     tee_id: Optional[int] = None
     course_name: str
@@ -14,6 +16,7 @@ class RoundCreate(BaseModel):
 
 class RoundResponse(BaseModel):
     id: int
+    club_name: Optional[str]
     course_name: str
     playing_handicap: int
     status: str

@@ -8,6 +8,8 @@ class Round(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, nullable=True)
     course_source = Column(String)
+    club_id = Column(Integer, ForeignKey("local_clubs.id"), nullable=True)
+    club_name = Column(String)
     course_id = Column(Integer, ForeignKey("local_courses.id"), nullable=True)
     tee_id = Column(Integer, ForeignKey("local_tees.id"), nullable=True)
     course_name = Column(String)

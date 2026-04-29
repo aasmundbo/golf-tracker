@@ -9,9 +9,9 @@ export default function App() {
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-green-700 text-white p-4 flex gap-6 items-center">
         <span className="font-bold text-lg">⛳ Golf Tracker</span>
-        <Link to="/" className="hover:underline">New Round</Link>
-        <Link to="/history" className="hover:underline">History</Link>
-        <Link to="/courses" className="hover:underline">My Courses</Link>
+        <Link to="/" className="hover:underline">Ny runde</Link>
+        <Link to="/history" className="hover:underline">Historikk</Link>
+        <Link to="/courses" className="hover:underline">Mine baner</Link>
       </nav>
       <main className="max-w-2xl mx-auto p-4">
         <Routes>

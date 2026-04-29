@@ -3,16 +3,26 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
 
-class LocalCourse(Base):
-    __tablename__ = "local_courses"
+class LocalClub(Base):
+    __tablename__ = "local_clubs"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     city = Column(String)
     country = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    courses = relationship("LocalCourse", back_populates="club", cascade="all, delete-orphan")
+
+class LocalCourse(Base):
+    __tablename__ = "local_courses"
+    id = Column(Integer, primary_key=True)
+    club_id = Column(Integer, ForeignKey("local_clubs.id"), nullable=True)
+    name = Column(String, nullable=False)
     external_api_id = Column(String)
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    club = relationship("LocalClub", back_populates="courses")
     tees = relationship("LocalTee", back_populates="course", cascade="all, delete-orphan")
 
 class LocalTee(Base):

@@ -1,16 +1,32 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class CourseCreate(BaseModel):
+class ClubCreate(BaseModel):
     name: str
     city: Optional[str] = None
     country: Optional[str] = None
+
+class ClubUpdate(BaseModel):
+    name: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+
+class LayoutCreate(BaseModel):
+    name: str
+    external_api_id: Optional[str] = None
+
+class LayoutUpdate(BaseModel):
+    name: Optional[str] = None
+    is_verified: Optional[bool] = None
+
+class CourseCreate(BaseModel):
+    name: str
+    club_id: Optional[int] = None
     external_api_id: Optional[str] = None
 
 class CourseUpdate(BaseModel):
     name: Optional[str] = None
-    city: Optional[str] = None
-    country: Optional[str] = None
+    club_id: Optional[int] = None
     is_verified: Optional[bool] = None
 
 class TeeCreate(BaseModel):
@@ -36,8 +52,6 @@ class HoleUpsert(BaseModel):
 class CourseResponse(BaseModel):
     id: int
     name: str
-    city: Optional[str]
-    country: Optional[str]
     is_verified: bool
     class Config:
         from_attributes = True
