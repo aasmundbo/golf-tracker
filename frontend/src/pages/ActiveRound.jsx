@@ -20,26 +20,27 @@ export default function ActiveRound() {
 
   useEffect(() => { loadRound() }, [id])
 
-  useEffect(() => {
-    if (!round?.tee_id) return
-    api.get(`/courses/local/tees/${round.tee_id}/holes`)
-      .then(res => {
-        const map = {}
-        res.data.forEach(h => { map[h.hole_number] = h })
-        setHoleData(map)
-      })
-      .catch(() => {})
-  }, [round?.tee_id])
-
   const loadRound = async () => {
     const [roundRes, liveRes] = await Promise.all([
       api.get(`/rounds/${id}`),
       api.get(`/rounds/${id}/live`),
     ])
-    setRound(roundRes.data)
+    const roundData = roundRes.data
+
+    let newHoleData = {}
+    if (roundData.tee_id) {
+      try {
+        const holesRes = await api.get(`/courses/local/tees/${roundData.tee_id}/holes`)
+        holesRes.data.forEach(h => { newHoleData[h.hole_number] = h })
+      } catch {}
+    }
+
+    // Batch all state updates — React 18 batches synchronous setters after await
+    setRound(roundData)
     setStats(liveRes.data)
+    setHoleData(newHoleData)
     const scoreMap = {}
-    ;(roundRes.data.scores || []).forEach(s => { scoreMap[s.hole_number] = s })
+    ;(roundData.scores || []).forEach(s => { scoreMap[s.hole_number] = s })
     setScores(scoreMap)
     for (let h = 1; h <= totalHoles; h++) {
       if (!scoreMap[h]) { setCurrentHole(h); break }

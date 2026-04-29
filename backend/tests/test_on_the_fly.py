@@ -97,6 +97,60 @@ async def test_local_tee_round_stores_tee_id(client):
     assert holes[1]["stroke_index"] == 9
 
 
+async def test_get_round_returns_tee_id(client):
+    """GET /rounds/:id must include tee_id so ActiveRound can pre-load hole data."""
+    club = (await client.post("/api/courses", json={"name": "Bærum GK"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={
+        "name": "18 Hull", "slope": 127, "course_rating": 71.4, "par_total": 72,
+    })).json()
+    tees = (await client.get(f"/api/courses/local/{layout['id']}/tees")).json()
+    tee_id = tees[0]["id"]
+
+    round_data = (await client.post("/api/rounds", json={
+        "course_source": "local", "club_name": "Bærum GK", "course_name": "18 Hull",
+        "tee_id": tee_id, "slope": 127, "course_rating": 71.4, "par_total": 72, "hcp_index": 15.0,
+    })).json()
+
+    fetched = (await client.get(f"/api/rounds/{round_data['id']}")).json()
+    assert fetched["tee_id"] == tee_id
+
+
+async def test_hole_data_preloads_on_second_round(client):
+    """Par/SI entered via HoleDataPrompt on round 1 is available for pre-load on round 2."""
+    club = (await client.post("/api/courses", json={"name": "Fornebu GK"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={
+        "name": "Bane 1", "slope": 120, "course_rating": 70.0, "par_total": 72,
+    })).json()
+    tees = (await client.get(f"/api/courses/local/{layout['id']}/tees")).json()
+    tee_id = tees[0]["id"]
+
+    def _round_payload():
+        return {
+            "course_source": "local", "club_name": "Fornebu GK", "course_name": "Bane 1",
+            "tee_id": tee_id, "slope": 120, "course_rating": 70.0, "par_total": 72, "hcp_index": 12.0,
+        }
+
+    # Round 1: user manually enters par/si (simulates HoleDataPrompt submission)
+    r1 = (await client.post("/api/rounds", json=_round_payload())).json()
+    await client.post(f"/api/rounds/{r1['id']}/scores", json={
+        "hole_number": 1, "strokes": 5, "hole_par": 4, "hole_stroke_index": 7,
+    })
+    await client.post(f"/api/rounds/{r1['id']}/scores", json={
+        "hole_number": 2, "strokes": 3, "hole_par": 3, "hole_stroke_index": 11,
+    })
+
+    # Round 2: hole data should be accessible without manual entry
+    r2 = (await client.post("/api/rounds", json=_round_payload())).json()
+    assert r2["tee_id"] == tee_id
+
+    holes = (await client.get(f"/api/courses/local/tees/{tee_id}/holes")).json()
+    assert len(holes) == 2
+    h1 = next(h for h in holes if h["hole_number"] == 1)
+    h2 = next(h for h in holes if h["hole_number"] == 2)
+    assert h1["par"] == 4 and h1["stroke_index"] == 7
+    assert h2["par"] == 3 and h2["stroke_index"] == 11
+
+
 async def test_two_rounds_same_course_name_reuse_club(client):
     payload = {
         "course_name": "Unique Course XYZ",
