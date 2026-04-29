@@ -12,12 +12,25 @@ export default function ActiveRound() {
   const [round, setRound] = useState(null)
   const [stats, setStats] = useState(null)
   const [scores, setScores] = useState({})
+  const [holeData, setHoleData] = useState({}) // hole_number → {par, stroke_index} from local_holes
   const [currentHole, setCurrentHole] = useState(1)
   const [holeDataNeeded, setHoleDataNeeded] = useState(null)
   const [showScorecard, setShowScorecard] = useState(false)
   const totalHoles = 18
 
   useEffect(() => { loadRound() }, [id])
+
+  // Fetch stored tee hole data once we know the tee_id
+  useEffect(() => {
+    if (!round?.tee_id) return
+    api.get(`/courses/local/tees/${round.tee_id}/holes`)
+      .then(res => {
+        const map = {}
+        res.data.forEach(h => { map[h.hole_number] = h })
+        setHoleData(map)
+      })
+      .catch(() => {})
+  }, [round?.tee_id])
 
   const loadRound = async () => {
     const [roundRes, liveRes] = await Promise.all([
@@ -50,7 +63,21 @@ export default function ActiveRound() {
     navigate('/history')
   }
 
+  // Build the score object passed to HoleCard: existing score takes priority,
+  // then fall back to par/SI from the stored local hole so HoleDataPrompt is skipped.
+  const resolveHoleScore = (holeNumber) => {
+    const score = scores[holeNumber]
+    if (score) return score
+    const stored = holeData[holeNumber]
+    if (stored?.par && stored?.stroke_index) {
+      return { hole_par: stored.par, hole_stroke_index: stored.stroke_index }
+    }
+    return undefined
+  }
+
   if (!round) return <div className="mt-8 text-center">Loading…</div>
+
+  const resolvedScore = resolveHoleScore(currentHole)
 
   return (
     <div className="space-y-4 mt-4">
@@ -70,7 +97,7 @@ export default function ActiveRound() {
 
       <HoleCard
         holeNumber={currentHole}
-        existingScore={scores[currentHole]}
+        existingScore={resolvedScore}
         playingHandicap={round.playing_handicap}
         onSubmit={(strokes, par, si) => {
           if (!par || !si) {

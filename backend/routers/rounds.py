@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database import get_db
 from models.round import Round, HoleScore
+from models.course import LocalCourse, LocalTee
 from services.handicap import calculate_playing_handicap, calculate_live_stats
 from schemas.round import RoundCreate, RoundResponse
 
@@ -13,8 +14,28 @@ async def start_round(data: RoundCreate, db: AsyncSession = Depends(get_db)):
     playing_hcp = calculate_playing_handicap(
         data.hcp_index, data.slope, data.course_rating, data.par_total or 72
     )
+    round_data = data.model_dump()
+
+    # Auto-create a local course+tee for on-the-fly rounds so hole data has somewhere to live
+    if data.course_source == 'on_the_fly' and not data.tee_id:
+        course = LocalCourse(name=data.course_name)
+        db.add(course)
+        await db.flush()
+        tee = LocalTee(
+            course_id=course.id,
+            name=data.tee_name or 'Default',
+            slope=data.slope,
+            course_rating=data.course_rating,
+            par_total=data.par_total,
+        )
+        db.add(tee)
+        await db.flush()
+        round_data['course_id'] = course.id
+        round_data['tee_id'] = tee.id
+        round_data['course_source'] = 'local'
+
     round_ = Round(
-        **data.model_dump(),
+        **round_data,
         playing_handicap=playing_hcp,
         status="active",
     )

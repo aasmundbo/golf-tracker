@@ -93,6 +93,13 @@ async def upsert_hole(course_id: int, tee_id: int, data: HoleUpsert, db: AsyncSe
     await db.refresh(hole)
     return hole
 
+@router.get("/local/tees/{tee_id}/holes")
+async def get_tee_holes(tee_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(LocalHole).where(LocalHole.tee_id == tee_id).order_by(LocalHole.hole_number)
+    )
+    return result.scalars().all()
+
 @router.get("/{course_id}")
 async def get_course(course_id: str, db: AsyncSession = Depends(get_db)):
     if course_id.startswith("local:"):

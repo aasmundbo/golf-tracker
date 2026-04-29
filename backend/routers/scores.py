@@ -3,17 +3,32 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database import get_db
 from models.round import HoleScore, Round
+from models.course import LocalHole
 from schemas.score import ScoreCreate, ScoreUpdate
 
 router = APIRouter(prefix="/api/rounds", tags=["scores"])
 
+async def _upsert_local_hole(db: AsyncSession, tee_id: int, hole_number: int, par: int, stroke_index: int) -> None:
+    result = await db.execute(
+        select(LocalHole).where(LocalHole.tee_id == tee_id, LocalHole.hole_number == hole_number)
+    )
+    hole = result.scalar_one_or_none()
+    if hole:
+        hole.par = par
+        hole.stroke_index = stroke_index
+    else:
+        db.add(LocalHole(tee_id=tee_id, hole_number=hole_number, par=par, stroke_index=stroke_index))
+
 @router.post("/{round_id}/scores")
 async def record_score(round_id: int, data: ScoreCreate, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Round).where(Round.id == round_id))
-    if not result.scalar_one_or_none():
+    round_ = result.scalar_one_or_none()
+    if not round_:
         raise HTTPException(404, "Round not found")
     score = HoleScore(round_id=round_id, **data.model_dump())
     db.add(score)
+    if round_.tee_id and data.hole_par and data.hole_stroke_index:
+        await _upsert_local_hole(db, round_.tee_id, data.hole_number, data.hole_par, data.hole_stroke_index)
     await db.commit()
     await db.refresh(score)
     return score
@@ -28,5 +43,10 @@ async def update_score(round_id: int, hole_number: int, data: ScoreUpdate, db: A
         raise HTTPException(404)
     for k, v in data.model_dump(exclude_unset=True).items():
         setattr(score, k, v)
+    if data.hole_par and data.hole_stroke_index:
+        round_result = await db.execute(select(Round).where(Round.id == round_id))
+        round_ = round_result.scalar_one_or_none()
+        if round_ and round_.tee_id:
+            await _upsert_local_hole(db, round_.tee_id, hole_number, data.hole_par, data.hole_stroke_index)
     await db.commit()
     return score
