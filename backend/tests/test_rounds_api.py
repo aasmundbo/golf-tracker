@@ -145,3 +145,71 @@ async def test_delete_round_cascades_scores(client):
 
     # Round is gone
     assert (await client.get(f"/api/rounds/{round_id}")).status_code == 404
+
+
+# ── projected handicap differential ──────────────────────────────────────────
+
+async def _setup_round_with_holes(client: AsyncClient) -> dict:
+    """Create a local club/layout/tee with 18 holes (par 4, SI = hole number) and a round."""
+    club = (await client.post("/api/courses", json={"name": "Test Club"})).json()
+    layout = (await client.post(
+        f"/api/courses/{club['id']}/layouts",
+        json={"name": "Gul", "slope": 113.0, "course_rating": 72.0, "par_total": 72},
+    )).json()
+    tees = (await client.get(f"/api/courses/local/{layout['id']}/tees")).json()
+    tee_id = tees[0]["id"]
+    holes = [{"hole_number": h, "par": 4, "stroke_index": h} for h in range(1, 19)]
+    await client.put(f"/api/courses/local/tees/{tee_id}/holes", json={"holes": holes})
+    round_ = (await client.post("/api/rounds", json={
+        "course_source": "local",
+        "tee_id": tee_id,
+        "course_name": "Test Course",
+        "slope": 113.0,
+        "course_rating": 72.0,
+        "par_total": 72,
+        "hcp_index": 18.0,
+    })).json()
+    return round_
+
+
+async def test_projected_handicap_no_scores(client):
+    # Slope=113, CR=72, playing_hcp=18; all par 4, SI 1-18 → each hole: projected = 4+1=5
+    # adj_gross total = 18*5 = 90 → diff = (90-72)*113/113 = 18.0
+    round_ = await _setup_round_with_holes(client)
+    resp = await client.get(f"/api/rounds/{round_['id']}/projected_handicap")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["holes_played"] == 0
+    assert body["projected_differential"] == pytest.approx(18.0, abs=0.05)
+    assert len(body["hole_by_hole"]) == 18
+    assert body["hole_by_hole"][0]["hole"] == 1
+    assert body["hole_by_hole"][0]["projected_differential_after_hole"] == pytest.approx(18.0, abs=0.05)
+
+
+async def test_projected_handicap_mid_round(client):
+    # Holes 1-9 played with strokes=4 (par, vs projected 5 each)
+    # adj total = 9*4 + 9*5 = 81 → diff = (81-72)*113/113 = 9.0
+    round_ = await _setup_round_with_holes(client)
+    for h in range(1, 10):
+        await client.post(f"/api/rounds/{round_['id']}/scores", json={
+            "hole_number": h, "strokes": 4, "hole_par": 4, "hole_stroke_index": h,
+        })
+    resp = await client.get(f"/api/rounds/{round_['id']}/projected_handicap")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["holes_played"] == 9
+    assert body["projected_differential"] == pytest.approx(9.0, abs=0.05)
+    assert len(body["hole_by_hole"]) == 18
+    # After hole 1: 4 + 17*5 = 89 → 17.0
+    assert body["hole_by_hole"][0]["projected_differential_after_hole"] == pytest.approx(17.0, abs=0.05)
+    # After hole 9: 9*4 + 9*5 = 81 → 9.0
+    assert body["hole_by_hole"][8]["hole"] == 9
+    assert body["hole_by_hole"][8]["projected_differential_after_hole"] == pytest.approx(9.0, abs=0.05)
+
+
+async def test_projected_handicap_requires_hole_data(client):
+    # on_the_fly round: tee auto-created but no LocalHole records → can't project
+    round_data = await _create_round(client, STANDARD_ROUND)
+    resp = await client.get(f"/api/rounds/{round_data['id']}/projected_handicap")
+    assert resp.status_code == 200
+    assert resp.json()["projected_differential"] is None

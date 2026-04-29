@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database import get_db
 from models.round import Round, HoleScore
-from models.course import LocalClub, LocalCourse, LocalTee
-from services.handicap import calculate_playing_handicap, calculate_live_stats
+from models.course import LocalClub, LocalCourse, LocalTee, LocalHole
+from services.handicap import calculate_playing_handicap, calculate_live_stats, calculate_projected_handicap
 from schemas.round import RoundCreate, RoundResponse
 
 router = APIRouter(prefix="/api/rounds", tags=["rounds"])
@@ -149,3 +149,42 @@ async def get_live_stats(round_id: int, db: AsyncSession = Depends(get_db)):
     ]
     stats = calculate_live_stats(scores, round_.playing_handicap)
     return {**stats, "playing_handicap": round_.playing_handicap, "hcp_index": round_.hcp_index}
+
+
+@router.get("/{round_id}/projected_handicap")
+async def get_projected_handicap(round_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Round).where(Round.id == round_id))
+    round_ = result.scalar_one_or_none()
+    if not round_:
+        raise HTTPException(404)
+
+    score_result = await db.execute(
+        select(HoleScore).where(HoleScore.round_id == round_id).order_by(HoleScore.hole_number)
+    )
+    scores = [
+        {
+            "hole_number": s.hole_number,
+            "strokes": s.strokes,
+            "hole_par": s.hole_par,
+            "hole_stroke_index": s.hole_stroke_index,
+        }
+        for s in score_result.scalars().all()
+    ]
+
+    hole_data = []
+    if round_.tee_id:
+        hole_result = await db.execute(
+            select(LocalHole).where(LocalHole.tee_id == round_.tee_id).order_by(LocalHole.hole_number)
+        )
+        hole_data = [
+            {"hole_number": h.hole_number, "par": h.par, "stroke_index": h.stroke_index}
+            for h in hole_result.scalars().all()
+        ]
+
+    return calculate_projected_handicap(
+        scores=scores,
+        hole_data=hole_data,
+        playing_handicap=round_.playing_handicap,
+        course_rating=round_.course_rating,
+        slope=round_.slope,
+    )

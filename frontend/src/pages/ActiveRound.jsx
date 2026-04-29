@@ -16,14 +16,16 @@ export default function ActiveRound() {
   const [currentHole, setCurrentHole] = useState(1)
   const [holeDataNeeded, setHoleDataNeeded] = useState(null)
   const [showScorecard, setShowScorecard] = useState(false)
+  const [projection, setProjection] = useState(null)
   const totalHoles = 18
 
   useEffect(() => { loadRound() }, [id])
 
   const loadRound = async () => {
-    const [roundRes, liveRes] = await Promise.all([
+    const [roundRes, liveRes, projRes] = await Promise.all([
       api.get(`/rounds/${id}`),
       api.get(`/rounds/${id}/live`),
+      api.get(`/rounds/${id}/projected_handicap`),
     ])
     const roundData = roundRes.data
 
@@ -38,6 +40,7 @@ export default function ActiveRound() {
     // Batch all state updates — React 18 batches synchronous setters after await
     setRound(roundData)
     setStats(liveRes.data)
+    setProjection(projRes.data)
     setHoleData(newHoleData)
     const scoreMap = {}
     ;(roundData.scores || []).forEach(s => { scoreMap[s.hole_number] = s })
@@ -110,7 +113,14 @@ export default function ActiveRound() {
 
       {stats && <LiveStats stats={stats} />}
 
-      {showScorecard && <Scorecard scores={scores} totalHoles={totalHoles} />}
+      {showScorecard && (
+        <Scorecard
+          scores={scores}
+          totalHoles={totalHoles}
+          projection={projection}
+          hcpIndex={round.hcp_index}
+        />
+      )}
 
       <HoleCard
         holeNumber={currentHole}
