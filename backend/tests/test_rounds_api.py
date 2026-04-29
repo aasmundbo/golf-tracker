@@ -102,6 +102,35 @@ async def test_delete_round_returns_404_after(client):
     assert get_resp.status_code == 404
 
 
+async def test_get_round_includes_scores(client):
+    round_data = await _create_round(client, STANDARD_ROUND)
+    round_id = round_data["id"]
+
+    await client.post(f"/api/rounds/{round_id}/scores", json={
+        "hole_number": 3, "strokes": 5, "hole_par": 4, "hole_stroke_index": 7,
+    })
+
+    resp = await client.get(f"/api/rounds/{round_id}")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "scores" in body
+    assert len(body["scores"]) == 1
+    s = body["scores"][0]
+    assert s["hole_number"] == 3
+    assert s["strokes"] == 5
+    assert s["hole_par"] == 4
+    assert s["hole_stroke_index"] == 7
+
+
+async def test_get_round_scores_empty_before_any_recorded(client):
+    round_data = await _create_round(client, STANDARD_ROUND)
+    round_id = round_data["id"]
+
+    resp = await client.get(f"/api/rounds/{round_id}")
+    assert resp.status_code == 200
+    assert resp.json()["scores"] == []
+
+
 async def test_delete_round_cascades_scores(client):
     round_data = await _create_round(client, STANDARD_ROUND)
     round_id = round_data["id"]

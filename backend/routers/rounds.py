@@ -72,7 +72,21 @@ async def get_round(round_id: int, db: AsyncSession = Depends(get_db)):
     round_ = result.scalar_one_or_none()
     if not round_:
         raise HTTPException(404)
-    return round_
+    score_result = await db.execute(
+        select(HoleScore).where(HoleScore.round_id == round_id).order_by(HoleScore.hole_number)
+    )
+    scores = [
+        {
+            "hole_number": s.hole_number,
+            "strokes": s.strokes,
+            "hole_par": s.hole_par,
+            "hole_stroke_index": s.hole_stroke_index,
+        }
+        for s in score_result.scalars().all()
+    ]
+    response = {c.key: getattr(round_, c.key) for c in Round.__table__.columns}
+    response["scores"] = scores
+    return response
 
 @router.delete("/{round_id}")
 async def delete_round(round_id: int, db: AsyncSession = Depends(get_db)):
