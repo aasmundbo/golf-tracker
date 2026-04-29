@@ -69,6 +69,7 @@ export default function NewRound() {
           club_name: selected?.club_name || '',
           course_name: selected?.name || '',
           tee_name: selectedTee?.tee_name || selectedTee?.name || '',
+          tee_id: selectedTee?.id ?? null,
           slope: selectedTee?.slope_rating || selectedTee?.slope,
           course_rating: selectedTee?.course_rating,
           par_total: selectedTee?.par_total,
