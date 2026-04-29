@@ -7,7 +7,7 @@ from models.course import LocalClub, LocalCourse, LocalTee, LocalHole
 from services import course_resolver, course_api
 from schemas.course import (
     ClubCreate, ClubUpdate, LayoutCreate, LayoutUpdate,
-    CourseCreate, CourseUpdate, TeeCreate, TeeUpdate, HoleUpsert,
+    CourseCreate, CourseUpdate, TeeCreate, TeeUpdate, HoleUpsert, BulkHoleUpsert,
 )
 
 router = APIRouter(prefix="/api/courses", tags=["courses"])
@@ -113,6 +113,28 @@ async def create_local_layout(data: CourseCreate, db: AsyncSession = Depends(get
 
 @router.get("/local/tees/{tee_id}/holes")
 async def get_tee_holes(tee_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(LocalHole).where(LocalHole.tee_id == tee_id).order_by(LocalHole.hole_number)
+    )
+    return result.scalars().all()
+
+@router.put("/local/tees/{tee_id}/holes")
+async def bulk_upsert_holes(tee_id: int, data: BulkHoleUpsert, db: AsyncSession = Depends(get_db)):
+    tee = await db.get(LocalTee, tee_id)
+    if not tee:
+        raise HTTPException(404, "Tee not found")
+    existing = await db.execute(
+        select(LocalHole).where(LocalHole.tee_id == tee_id)
+    )
+    existing_by_number = {h.hole_number: h for h in existing.scalars().all()}
+    for hole_data in data.holes:
+        if hole_data.hole_number in existing_by_number:
+            hole = existing_by_number[hole_data.hole_number]
+            for k, v in hole_data.model_dump(exclude_unset=True).items():
+                setattr(hole, k, v)
+        else:
+            db.add(LocalHole(tee_id=tee_id, **hole_data.model_dump()))
+    await db.commit()
     result = await db.execute(
         select(LocalHole).where(LocalHole.tee_id == tee_id).order_by(LocalHole.hole_number)
     )

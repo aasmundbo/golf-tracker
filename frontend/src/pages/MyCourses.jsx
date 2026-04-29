@@ -5,6 +5,9 @@ const EMPTY_COURSE_FORM = { name: '', city: '', country: '', layout_name: 'Hoved
 const EMPTY_LAYOUT_FORM = { name: '', slope: '', course_rating: '', par_total: '', tee_name: '' }
 const EMPTY_TEE_FORM = { name: '', slope: '', course_rating: '', par_total: '' }
 
+const emptyHoleRow = (n) => ({ hole_number: n, par: '', stroke_index: '' })
+const emptyHoles = () => Array.from({ length: 18 }, (_, i) => emptyHoleRow(i + 1))
+
 export default function MyCourses() {
   const [courses, setCourses] = useState([])
   const [expandedCourse, setExpandedCourse] = useState(null)
@@ -21,6 +24,12 @@ export default function MyCourses() {
 
   const [addingTeeTo, setAddingTeeTo] = useState(null)        // layout_id
   const [teeForm, setTeeForm] = useState(EMPTY_TEE_FORM)
+
+  // hull-info state: tee_id-keyed
+  const [expandedHoles, setExpandedHoles] = useState({})   // tee_id → bool
+  const [holeData, setHoleData] = useState({})             // tee_id → hole[]
+  const [savingHoles, setSavingHoles] = useState({})        // tee_id → bool
+  const [holeErrors, setHoleErrors] = useState({})          // tee_id → string|null
 
   // ── Load ────────────────────────────────────────────────────────────────────
 
@@ -39,6 +48,19 @@ export default function MyCourses() {
     setLayoutTees(prev => ({ ...prev, [layoutId]: res.data }))
   }
 
+  const loadHoles = async (teeId) => {
+    const res = await api.get(`/courses/local/tees/${teeId}/holes`)
+    const rows = emptyHoles()
+    for (const h of res.data) {
+      const idx = h.hole_number - 1
+      if (idx >= 0 && idx < 18) {
+        rows[idx] = { hole_number: h.hole_number, par: h.par ?? '', stroke_index: h.stroke_index ?? '' }
+      }
+    }
+    setHoleData(prev => ({ ...prev, [teeId]: rows }))
+    return res.data
+  }
+
   // ── Toggle expand ────────────────────────────────────────────────────────────
 
   const toggleCourse = async (courseId) => {
@@ -51,6 +73,14 @@ export default function MyCourses() {
     if (expandedLayout === layoutId) { setExpandedLayout(null); return }
     setExpandedLayout(layoutId)
     if (!layoutTees[layoutId]) await loadTees(layoutId)
+  }
+
+  const toggleHoles = async (teeId) => {
+    const next = !expandedHoles[teeId]
+    setExpandedHoles(prev => ({ ...prev, [teeId]: next }))
+    if (next && !holeData[teeId]) {
+      await loadHoles(teeId)
+    }
   }
 
   // ── Top-level course ─────────────────────────────────────────────────────────
@@ -133,6 +163,44 @@ export default function MyCourses() {
     setAddingTeeTo(null)
     setTeeForm(EMPTY_TEE_FORM)
     await loadTees(layoutId)
+  }
+
+  // ── Hull-info ─────────────────────────────────────────────────────────────────
+
+  const updateHoleField = (teeId, holeIndex, field, value) => {
+    setHoleData(prev => {
+      const rows = [...(prev[teeId] || emptyHoles())]
+      rows[holeIndex] = { ...rows[holeIndex], [field]: value }
+      return { ...prev, [teeId]: rows }
+    })
+  }
+
+  const saveHoles = async (teeId) => {
+    setSavingHoles(prev => ({ ...prev, [teeId]: true }))
+    setHoleErrors(prev => ({ ...prev, [teeId]: null }))
+    const rows = holeData[teeId] || emptyHoles()
+    const holes = rows.map(r => ({
+      hole_number: r.hole_number,
+      par: r.par !== '' ? parseInt(r.par) : null,
+      stroke_index: r.stroke_index !== '' ? parseInt(r.stroke_index) : null,
+    }))
+    try {
+      await api.put(`/courses/local/tees/${teeId}/holes`, { holes })
+      await loadHoles(teeId)
+      setExpandedHoles(prev => ({ ...prev, [teeId]: false }))
+    } catch (err) {
+      setHoleErrors(prev => ({
+        ...prev,
+        [teeId]: err.response?.data?.detail ?? err.message ?? 'Lagring feilet',
+      }))
+    } finally {
+      setSavingHoles(prev => ({ ...prev, [teeId]: false }))
+    }
+  }
+
+  const holesSaved = (teeId) => {
+    const rows = holeData[teeId]
+    return rows && rows.some(r => r.par !== '' && r.par !== null)
   }
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -279,11 +347,85 @@ export default function MyCourses() {
                   {expandedLayout === layout.id && (
                     <div className="border-t px-3 py-2 space-y-1">
                       {(layoutTees[layout.id] || []).map(t => (
-                        <div key={t.id} className="flex justify-between py-1 border-b last:border-0 text-sm text-gray-700">
-                          <span>{t.name}</span>
-                          <span className="text-gray-400 text-xs">
-                            SR {t.slope ?? '–'} / CR {t.course_rating ?? '–'} / Par {t.par_total ?? '–'}
-                          </span>
+                        <div key={t.id} className="border-b last:border-0 py-1">
+                          {/* Tee summary row */}
+                          <div className="flex justify-between items-center text-sm text-gray-700">
+                            <span>{t.name}</span>
+                            <div className="flex items-center gap-3">
+                              <span className="text-gray-400 text-xs">
+                                SR {t.slope ?? '–'} / CR {t.course_rating ?? '–'} / Par {t.par_total ?? '–'}
+                              </span>
+                              {!expandedHoles[t.id] && holesSaved(t.id) && (
+                                <span className="text-xs text-green-700">18 hull lagret</span>
+                              )}
+                              <button
+                                onClick={() => toggleHoles(t.id)}
+                                className="text-xs text-blue-600 underline"
+                              >
+                                {expandedHoles[t.id] ? 'Lukk hull-info' : 'Rediger hull-info'}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Hull-info editor */}
+                          {expandedHoles[t.id] && (
+                            <div className="mt-2 space-y-2">
+                              <table className="w-full text-xs border-collapse">
+                                <thead>
+                                  <tr className="text-gray-500 border-b">
+                                    <th className="text-left py-1 pr-2 font-medium">Hull</th>
+                                    <th className="text-left py-1 pr-2 font-medium">Par</th>
+                                    <th className="text-left py-1 font-medium">Slagindeks</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {(holeData[t.id] || emptyHoles()).map((row, idx) => (
+                                    <tr key={row.hole_number} className="border-b last:border-0">
+                                      <td className="py-0.5 pr-2 text-gray-500">{row.hole_number}</td>
+                                      <td className="py-0.5 pr-2">
+                                        <input
+                                          type="number"
+                                          min={3}
+                                          max={6}
+                                          className="border rounded px-1 py-0.5 w-14 text-xs"
+                                          value={row.par}
+                                          onChange={e => updateHoleField(t.id, idx, 'par', e.target.value)}
+                                        />
+                                      </td>
+                                      <td className="py-0.5">
+                                        <input
+                                          type="number"
+                                          min={1}
+                                          max={18}
+                                          className="border rounded px-1 py-0.5 w-14 text-xs"
+                                          value={row.stroke_index}
+                                          onChange={e => updateHoleField(t.id, idx, 'stroke_index', e.target.value)}
+                                        />
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                              {holeErrors[t.id] && (
+                                <p className="text-red-600 text-xs">{holeErrors[t.id]}</p>
+                              )}
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => saveHoles(t.id)}
+                                  disabled={savingHoles[t.id]}
+                                  className="bg-green-700 text-white px-3 py-1 rounded text-xs disabled:opacity-50"
+                                >
+                                  {savingHoles[t.id] ? 'Lagrer…' : 'Lagre hull-info'}
+                                </button>
+                                <button
+                                  onClick={() => setExpandedHoles(prev => ({ ...prev, [t.id]: false }))}
+                                  className="border px-3 py-1 rounded text-xs"
+                                >
+                                  Avbryt
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                       {(layoutTees[layout.id] || []).length === 0 && addingTeeTo !== layout.id && (

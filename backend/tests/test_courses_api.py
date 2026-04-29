@@ -121,6 +121,42 @@ async def test_create_layout_default_tee_name_is_gul(client):
     assert tees[0]["name"] == "gul"
 
 
+# ── bulk upsert holes (PUT /local/tees/{tee_id}/holes) ───────────────────────
+
+async def test_bulk_upsert_holes(client):
+    club = await _create_club(client, "Hole Club")
+    layout_resp = await client.post(f"/api/courses/{club['id']}/layouts", json={
+        "name": "Bane",
+        "slope": 120.0,
+        "course_rating": 68.0,
+        "par_total": 72,
+    })
+    layout_id = layout_resp.json()["id"]
+    tee_id = (await client.get(f"/api/courses/local/{layout_id}/tees")).json()[0]["id"]
+
+    holes_payload = {"holes": [
+        {"hole_number": i, "par": 4, "stroke_index": i} for i in range(1, 19)
+    ]}
+    resp = await client.put(f"/api/courses/local/tees/{tee_id}/holes", json=holes_payload)
+    assert resp.status_code == 200
+    result = resp.json()
+    assert len(result) == 18
+    assert result[0]["hole_number"] == 1
+    assert result[0]["par"] == 4
+
+    # update a hole and verify
+    holes_payload["holes"][0]["par"] = 5
+    resp2 = await client.put(f"/api/courses/local/tees/{tee_id}/holes", json=holes_payload)
+    assert resp2.status_code == 200
+    updated = next(h for h in resp2.json() if h["hole_number"] == 1)
+    assert updated["par"] == 5
+
+
+async def test_bulk_upsert_holes_404_on_unknown_tee(client):
+    resp = await client.put("/api/courses/local/tees/99999/holes", json={"holes": []})
+    assert resp.status_code == 404
+
+
 # ── search returns local results ──────────────────────────────────────────────
 
 async def test_search_returns_local_results(client):

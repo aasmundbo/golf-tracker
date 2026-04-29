@@ -53,6 +53,9 @@ class HoleUpsert(BaseModel):
     stroke_index: Optional[int] = None
     distance_meters: Optional[int] = None
 
+class BulkHoleUpsert(BaseModel):
+    holes: list[HoleUpsert]
+
 class CourseResponse(BaseModel):
     id: int
     name: str
