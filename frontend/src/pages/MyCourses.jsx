@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../api/client'
 
-const EMPTY_COURSE_FORM = { name: '', city: '', country: '', layout_name: 'Hovedbane', slope: '', course_rating: '', par_total: '' }
+const EMPTY_COURSE_FORM = { name: '', city: '', country: '', layout_name: 'Hovedbane', tee_name: 'gul', slope: '', course_rating: '', par_total: '' }
 const EMPTY_LAYOUT_FORM = { name: '', slope: '', course_rating: '', par_total: '', tee_name: '' }
 const EMPTY_TEE_FORM = { name: '', slope: '', course_rating: '', par_total: '' }
 
@@ -67,6 +67,7 @@ export default function MyCourses() {
       if (courseForm.layout_name.trim()) {
         await api.post(`/courses/${club.data.id}/layouts`, {
           name: courseForm.layout_name,
+          tee_name: courseForm.tee_name.trim() || undefined,
           slope: courseForm.slope ? parseFloat(courseForm.slope) : undefined,
           course_rating: courseForm.course_rating ? parseFloat(courseForm.course_rating) : undefined,
           par_total: courseForm.par_total ? parseInt(courseForm.par_total) : undefined,
@@ -177,14 +178,25 @@ export default function MyCourses() {
           <div className="border-t pt-3">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Første banevariant</p>
             <div className="space-y-2">
-              <div>
-                <label className="block text-sm font-medium">Variant</label>
-                <input
-                  className="border rounded px-3 py-2 w-full"
-                  placeholder="f.eks. Hovedbane"
-                  value={courseForm.layout_name}
-                  onChange={e => setCourseForm(d => ({ ...d, layout_name: e.target.value }))}
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-sm font-medium">Variant</label>
+                  <input
+                    className="border rounded px-3 py-2 w-full"
+                    placeholder="f.eks. Hovedbane"
+                    value={courseForm.layout_name}
+                    onChange={e => setCourseForm(d => ({ ...d, layout_name: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Utslagssted</label>
+                  <input
+                    className="border rounded px-3 py-2 w-full"
+                    placeholder="f.eks. gul"
+                    value={courseForm.tee_name}
+                    onChange={e => setCourseForm(d => ({ ...d, tee_name: e.target.value }))}
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {[['slope', 'Slope'], ['course_rating', 'CR'], ['par_total', 'Par']].map(([field, label]) => (

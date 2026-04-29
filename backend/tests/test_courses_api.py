@@ -86,6 +86,41 @@ async def test_delete_course_cascades_layouts_tees_and_holes(client):
     assert (await client.get(f"/api/courses/local/tees/{tee_id}/holes")).json() == []
 
 
+# ── tee name when creating layouts ───────────────────────────────────────────
+
+async def test_create_layout_with_custom_tee_name(client):
+    club = await _create_club(client)
+    resp = await client.post(f"/api/courses/{club['id']}/layouts", json={
+        "name": "Hauptbane",
+        "tee_name": "hvit",
+        "slope": 130.0,
+        "course_rating": 70.5,
+        "par_total": 72,
+    })
+    assert resp.status_code == 200
+    layout_id = resp.json()["id"]
+
+    tees = (await client.get(f"/api/courses/local/{layout_id}/tees")).json()
+    assert len(tees) == 1
+    assert tees[0]["name"] == "hvit"
+
+
+async def test_create_layout_default_tee_name_is_gul(client):
+    club = await _create_club(client)
+    resp = await client.post(f"/api/courses/{club['id']}/layouts", json={
+        "name": "Hauptbane",
+        "slope": 128.0,
+        "course_rating": 69.0,
+        "par_total": 71,
+    })
+    assert resp.status_code == 200
+    layout_id = resp.json()["id"]
+
+    tees = (await client.get(f"/api/courses/local/{layout_id}/tees")).json()
+    assert len(tees) == 1
+    assert tees[0]["name"] == "gul"
+
+
 # ── search returns local results ──────────────────────────────────────────────
 
 async def test_search_returns_local_results(client):
