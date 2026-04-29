@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../api/client'
 
-const EMPTY_COURSE_FORM = { name: '', city: '', country: '' }
+const EMPTY_COURSE_FORM = { name: '', city: '', country: '', layout_name: 'Hovedbane', slope: '', course_rating: '', par_total: '' }
 const EMPTY_LAYOUT_FORM = { name: '', slope: '', course_rating: '', par_total: '', tee_name: '' }
 const EMPTY_TEE_FORM = { name: '', slope: '', course_rating: '', par_total: '' }
 
@@ -56,7 +56,19 @@ export default function MyCourses() {
 
   const addCourse = async () => {
     if (!courseForm.name.trim()) return
-    await api.post('/courses', courseForm)
+    const club = await api.post('/courses', {
+      name: courseForm.name,
+      city: courseForm.city,
+      country: courseForm.country,
+    })
+    if (courseForm.layout_name.trim()) {
+      await api.post(`/courses/${club.data.id}/layouts`, {
+        name: courseForm.layout_name,
+        slope: courseForm.slope ? parseFloat(courseForm.slope) : undefined,
+        course_rating: courseForm.course_rating ? parseFloat(courseForm.course_rating) : undefined,
+        par_total: courseForm.par_total ? parseInt(courseForm.par_total) : undefined,
+      })
+    }
     setAddingCourse(false)
     setCourseForm(EMPTY_COURSE_FORM)
     loadCourses()
@@ -152,9 +164,36 @@ export default function MyCourses() {
                 onChange={e => setCourseForm(d => ({ ...d, country: e.target.value }))} />
             </div>
           </div>
+          <div className="border-t pt-3">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Første banevariant</p>
+            <div className="space-y-2">
+              <div>
+                <label className="block text-sm font-medium">Variant</label>
+                <input
+                  className="border rounded px-3 py-2 w-full"
+                  placeholder="f.eks. Hovedbane"
+                  value={courseForm.layout_name}
+                  onChange={e => setCourseForm(d => ({ ...d, layout_name: e.target.value }))}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[['slope', 'Slope'], ['course_rating', 'CR'], ['par_total', 'Par']].map(([field, label]) => (
+                  <div key={field}>
+                    <label className="block text-sm font-medium">{label}</label>
+                    <input
+                      type="number"
+                      className="border rounded px-3 py-2 w-full"
+                      value={courseForm[field]}
+                      onChange={e => setCourseForm(d => ({ ...d, [field]: e.target.value }))}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
           <div className="flex gap-2">
             <button onClick={addCourse} className="bg-green-700 text-white px-4 py-2 rounded flex-1 text-sm">Lagre</button>
-            <button onClick={() => setAddingCourse(false)} className="border px-4 py-2 rounded flex-1 text-sm">Avbryt</button>
+            <button onClick={() => { setAddingCourse(false); setCourseForm(EMPTY_COURSE_FORM) }} className="border px-4 py-2 rounded flex-1 text-sm">Avbryt</button>
           </div>
         </div>
       )}
