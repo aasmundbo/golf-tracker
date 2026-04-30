@@ -112,6 +112,7 @@
   "liveStats": {
     "gross": "Gross",
     "net": "Netto",
-    "stableford": "Stableford"
+    "stableford": "Stableford",
+    "projectedHcp": "Proj. hcp"
   }
 }

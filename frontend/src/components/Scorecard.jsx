@@ -30,18 +30,9 @@ function Sparkline({ holeByHole, hcpIndex }) {
 
 export default function Scorecard({ scores, totalHoles, projection, hcpIndex }) {
   const { t } = useTranslation()
-  const diff = projection?.projected_differential ?? null
-  const labelColor = diff == null
-    ? 'text-gray-400'
-    : diff < hcpIndex ? 'text-green-600' : 'text-red-500'
-  const labelText = diff == null
-    ? t('scorecard.playingToHcpUnknown')
-    : t('scorecard.playingToHcp', { diff: diff.toFixed(1) })
 
   return (
     <div className="space-y-2">
-      <p className={`text-sm font-medium ${labelColor}`}>{labelText}</p>
-
       <div className="overflow-x-auto">
         <table className="text-sm w-full border-collapse">
           <thead>

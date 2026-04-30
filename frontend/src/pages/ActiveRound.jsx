@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../api/client'
@@ -19,9 +19,20 @@ export default function ActiveRound() {
   const [holeDataNeeded, setHoleDataNeeded] = useState(null)
   const [showScorecard, setShowScorecard] = useState(false)
   const [projection, setProjection] = useState(null)
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef(null)
   const totalHoles = 18
 
   useEffect(() => { loadRound() }, [id])
+
+  useEffect(() => {
+    if (!showMenu) return
+    const handleClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showMenu])
 
   const loadRound = async () => {
     const [roundRes, liveRes, projRes] = await Promise.all([
@@ -112,7 +123,7 @@ export default function ActiveRound() {
         </button>
       </div>
 
-      {stats && <LiveStats stats={stats} />}
+      {stats && <LiveStats stats={stats} projection={projection} hcpIndex={round.hcp_index} />}
 
       {showScorecard && (
         <Scorecard
@@ -165,22 +176,35 @@ export default function ActiveRound() {
         ))}
       </div>
 
-      {Object.keys(scores).length > 0 && round.status === 'active' && (
-        <button
-          onClick={finishRound}
-          className="w-full bg-gray-800 text-white py-2 rounded font-semibold"
-        >
-          {t('activeRound.finishRound')}
-        </button>
-      )}
-
       {round.status === 'active' && (
-        <button
-          onClick={deleteRound}
-          className="w-full border border-red-300 text-red-500 py-2 rounded text-sm"
-        >
-          {t('activeRound.deleteRound')}
-        </button>
+        <div className="flex items-center gap-2">
+          {Object.keys(scores).length > 0 && (
+            <button
+              onClick={finishRound}
+              className="flex-1 bg-gray-800 text-white py-2 rounded font-semibold"
+            >
+              {t('activeRound.finishRound')}
+            </button>
+          )}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setShowMenu(v => !v)}
+              className="w-10 h-10 flex items-center justify-center rounded border border-gray-300 text-gray-600 text-lg"
+            >
+              ⋯
+            </button>
+            {showMenu && (
+              <div className="absolute right-0 bottom-full mb-1 bg-white border rounded shadow-lg min-w-[130px]">
+                <button
+                  onClick={() => { setShowMenu(false); deleteRound() }}
+                  className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50"
+                >
+                  {t('activeRound.deleteRound')}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )
