@@ -159,6 +159,74 @@ async def test_bulk_upsert_holes_404_on_unknown_tee(client):
 
 # ── search returns local results ──────────────────────────────────────────────
 
+async def test_update_tee_flat(client):
+    club = await _create_club(client, "Tee Update Club")
+    layout_resp = await client.post(f"/api/courses/{club['id']}/layouts", json={
+        "name": "Bane",
+        "slope": 120.0,
+        "course_rating": 68.0,
+        "par_total": 72,
+    })
+    layout_id = layout_resp.json()["id"]
+    tee_id = (await client.get(f"/api/courses/local/{layout_id}/tees")).json()[0]["id"]
+
+    resp = await client.put(f"/api/courses/local/tees/{tee_id}", json={
+        "name": "Rød",
+        "slope": 135.0,
+        "course_rating": 71.5,
+        "par_total": 71,
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["name"] == "Rød"
+    assert data["slope"] == 135.0
+    assert data["course_rating"] == 71.5
+    assert data["par_total"] == 71
+
+
+async def test_update_tee_flat_404(client):
+    resp = await client.put("/api/courses/local/tees/99999", json={"name": "X"})
+    assert resp.status_code == 404
+
+
+async def test_duplicate_tee(client):
+    club = await _create_club(client, "Dup Club")
+    layout_resp = await client.post(f"/api/courses/{club['id']}/layouts", json={
+        "name": "Bane",
+        "slope": 125.0,
+        "course_rating": 69.0,
+        "par_total": 72,
+    })
+    layout_id = layout_resp.json()["id"]
+    tee_id = (await client.get(f"/api/courses/local/{layout_id}/tees")).json()[0]["id"]
+
+    holes_payload = {"holes": [
+        {"hole_number": i, "par": 4 if i % 3 != 0 else 3, "stroke_index": i}
+        for i in range(1, 19)
+    ]}
+    await client.put(f"/api/courses/local/tees/{tee_id}/holes", json=holes_payload)
+
+    dup_resp = await client.post(f"/api/courses/local/tees/{tee_id}/duplicate")
+    assert dup_resp.status_code == 200
+    dup = dup_resp.json()
+
+    assert dup["name"] == "Gul (kopi)"
+    assert dup["slope"] == 125.0
+    assert dup["course_rating"] == 69.0
+    assert dup["par_total"] == 72
+    assert dup["id"] != tee_id
+
+    dup_holes = (await client.get(f"/api/courses/local/tees/{dup['id']}/holes")).json()
+    assert len(dup_holes) == 18
+    assert dup_holes[0]["par"] == holes_payload["holes"][0]["par"]
+    assert dup_holes[0]["stroke_index"] == 1
+
+
+async def test_duplicate_tee_404(client):
+    resp = await client.post("/api/courses/local/tees/99999/duplicate")
+    assert resp.status_code == 404
+
+
 async def test_search_returns_local_results(client):
     club = await _create_club(client, "Bærum GK")
     await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Gul"})

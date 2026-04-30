@@ -27,10 +27,17 @@ export default function MyCourses() {
   const [addingTeeTo, setAddingTeeTo] = useState(null)
   const [teeForm, setTeeForm] = useState(EMPTY_TEE_FORM)
 
-  const [expandedHoles, setExpandedHoles] = useState({})
+  // Unified tee editor
+  const [editingTee, setEditingTee] = useState(null)
+  const [teeEditForm, setTeeEditForm] = useState(null)
+  const [savingTee, setSavingTee] = useState(false)
+  const [teeEditError, setTeeEditError] = useState(null)
+  const [duplicatingTee, setDuplicatingTee] = useState(null)
+
+  // Hole data cache for "18 hull lagret" badge
   const [holeData, setHoleData] = useState({})
-  const [savingHoles, setSavingHoles] = useState({})
-  const [holeErrors, setHoleErrors] = useState({})
+
+  const holeInputRefs = useRef({})
 
   const loadCourses = () =>
     api.get('/courses').then(r => setCourses(r.data)).catch(() => {})
@@ -57,7 +64,7 @@ export default function MyCourses() {
       }
     }
     setHoleData(prev => ({ ...prev, [teeId]: rows }))
-    return res.data
+    return rows
   }
 
   const toggleCourse = async (courseId) => {
@@ -72,12 +79,85 @@ export default function MyCourses() {
     if (!layoutTees[layoutId]) await loadTees(layoutId)
   }
 
-  const toggleHoles = async (teeId) => {
-    const next = !expandedHoles[teeId]
-    setExpandedHoles(prev => ({ ...prev, [teeId]: next }))
-    if (next && !holeData[teeId]) {
-      await loadHoles(teeId)
+  const openEditPanel = async (tee) => {
+    const rows = holeData[tee.id] ?? await loadHoles(tee.id)
+    setTeeEditForm({
+      name: tee.name,
+      slope: tee.slope ?? '',
+      course_rating: tee.course_rating ?? '',
+      par_total: tee.par_total ?? '',
+      holes: rows.map(r => ({ ...r })),
+    })
+    setTeeEditError(null)
+    setEditingTee(tee.id)
+  }
+
+  const closeTeeEdit = () => {
+    setEditingTee(null)
+    setTeeEditForm(null)
+    setTeeEditError(null)
+  }
+
+  const updateTeeEditMeta = (field, value) => {
+    setTeeEditForm(f => ({ ...f, [field]: value }))
+  }
+
+  const updateTeeEditHole = (teeId, holeIndex, field, value, flatIndex) => {
+    setTeeEditForm(f => {
+      const holes = [...f.holes]
+      holes[holeIndex] = { ...holes[holeIndex], [field]: value }
+      return { ...f, holes }
+    })
+    const len = value.length
+    if (len >= 2 || (len === 1 && value !== '1')) {
+      const refs = holeInputRefs.current[teeId] || []
+      const next = refs[flatIndex + 1]
+      if (next) { next.focus(); next.select() }
     }
+  }
+
+  const saveTeeEdit = async (layoutId) => {
+    setSavingTee(true)
+    setTeeEditError(null)
+    try {
+      await api.put(`/courses/local/tees/${editingTee}`, {
+        name: teeEditForm.name,
+        slope: teeEditForm.slope !== '' ? parseFloat(teeEditForm.slope) : null,
+        course_rating: teeEditForm.course_rating !== '' ? parseFloat(teeEditForm.course_rating) : null,
+        par_total: teeEditForm.par_total !== '' ? parseInt(teeEditForm.par_total) : null,
+      })
+      const holes = teeEditForm.holes.map(r => ({
+        hole_number: r.hole_number,
+        par: r.par !== '' ? parseInt(r.par) : null,
+        stroke_index: r.stroke_index !== '' ? parseInt(r.stroke_index) : null,
+      }))
+      await api.put(`/courses/local/tees/${editingTee}/holes`, { holes })
+      await loadHoles(editingTee)
+      await loadTees(layoutId)
+      closeTeeEdit()
+    } catch (err) {
+      setTeeEditError(err.response?.data?.detail ?? err.message ?? t('myCourses.saveFailed'))
+    } finally {
+      setSavingTee(false)
+    }
+  }
+
+  const duplicateTee = async (layoutId, teeId) => {
+    setDuplicatingTee(teeId)
+    try {
+      const res = await api.post(`/courses/local/tees/${teeId}/duplicate`)
+      await loadTees(layoutId)
+      await openEditPanel(res.data)
+    } catch (err) {
+      alert(err.response?.data?.detail ?? err.message ?? t('myCourses.somethingWentWrong'))
+    } finally {
+      setDuplicatingTee(null)
+    }
+  }
+
+  const teeHasSavedHoles = (teeId) => {
+    const rows = holeData[teeId]
+    return rows && rows.some(r => r.par !== '' && r.par !== null)
   }
 
   const addCourse = async () => {
@@ -120,14 +200,13 @@ export default function MyCourses() {
 
   const addLayout = async (courseId) => {
     if (!layoutForm.name.trim()) return
-    const payload = {
+    await api.post(`/courses/${courseId}/layouts`, {
       name: layoutForm.name,
       tee_name: layoutForm.tee_name || undefined,
       slope: layoutForm.slope ? parseFloat(layoutForm.slope) : undefined,
       course_rating: layoutForm.course_rating ? parseFloat(layoutForm.course_rating) : undefined,
       par_total: layoutForm.par_total ? parseInt(layoutForm.par_total) : undefined,
-    }
-    await api.post(`/courses/${courseId}/layouts`, payload)
+    })
     setAddingLayoutTo(null)
     setLayoutForm(EMPTY_LAYOUT_FORM)
     await loadLayouts(courseId)
@@ -154,54 +233,6 @@ export default function MyCourses() {
     setAddingTeeTo(null)
     setTeeForm(EMPTY_TEE_FORM)
     await loadTees(layoutId)
-  }
-
-  const updateHoleField = (teeId, holeIndex, field, value) => {
-    setHoleData(prev => {
-      const rows = [...(prev[teeId] || emptyHoles())]
-      rows[holeIndex] = { ...rows[holeIndex], [field]: value }
-      return { ...prev, [teeId]: rows }
-    })
-  }
-
-  const saveHoles = async (teeId) => {
-    setSavingHoles(prev => ({ ...prev, [teeId]: true }))
-    setHoleErrors(prev => ({ ...prev, [teeId]: null }))
-    const rows = holeData[teeId] || emptyHoles()
-    const holes = rows.map(r => ({
-      hole_number: r.hole_number,
-      par: r.par !== '' ? parseInt(r.par) : null,
-      stroke_index: r.stroke_index !== '' ? parseInt(r.stroke_index) : null,
-    }))
-    try {
-      await api.put(`/courses/local/tees/${teeId}/holes`, { holes })
-      await loadHoles(teeId)
-      setExpandedHoles(prev => ({ ...prev, [teeId]: false }))
-    } catch (err) {
-      setHoleErrors(prev => ({
-        ...prev,
-        [teeId]: err.response?.data?.detail ?? err.message ?? t('myCourses.saveFailed'),
-      }))
-    } finally {
-      setSavingHoles(prev => ({ ...prev, [teeId]: false }))
-    }
-  }
-
-  const holeInputRefs = useRef({})
-
-  const handleHoleInputChange = (teeId, holeIndex, field, value, flatIndex) => {
-    updateHoleField(teeId, holeIndex, field, value)
-    const len = value.length
-    if (len >= 2 || (len === 1 && value !== '1')) {
-      const refs = holeInputRefs.current[teeId] || []
-      const next = refs[flatIndex + 1]
-      if (next) { next.focus(); next.select() }
-    }
-  }
-
-  const holesSaved = (teeId) => {
-    const rows = holeData[teeId]
-    return rows && rows.some(r => r.par !== '' && r.par !== null)
   }
 
   return (
@@ -283,9 +314,7 @@ export default function MyCourses() {
               </div>
             </div>
           </div>
-          {courseError && (
-            <p className="text-red-600 text-sm">{courseError}</p>
-          )}
+          {courseError && <p className="text-red-600 text-sm">{courseError}</p>}
           <div className="flex gap-2">
             <button type="button" onClick={addCourse} className="bg-green-700 text-white px-4 py-2 rounded flex-1 text-sm">
               {t('myCourses.save')}
@@ -300,8 +329,6 @@ export default function MyCourses() {
       {/* Course list */}
       {courses.map(course => (
         <div key={course.id} className="bg-white border rounded-xl overflow-hidden">
-
-          {/* Course header row */}
           <div
             className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
             onClick={() => toggleCourse(course.id)}
@@ -323,14 +350,10 @@ export default function MyCourses() {
             </div>
           </div>
 
-          {/* Expanded: layouts */}
           {expandedCourse === course.id && (
             <div className="border-t bg-gray-50 px-4 py-3 space-y-2">
-
               {(layouts[course.id] || []).map(layout => (
                 <div key={layout.id} className="bg-white border rounded-lg overflow-hidden">
-
-                  {/* Layout header row */}
                   <div
                     className="px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-green-50"
                     onClick={() => toggleLayout(layout.id)}
@@ -349,33 +372,69 @@ export default function MyCourses() {
                     </div>
                   </div>
 
-                  {/* Expanded: tees */}
                   {expandedLayout === layout.id && (
                     <div className="border-t px-3 py-2 space-y-1">
                       {(layoutTees[layout.id] || []).map(tee => (
-                        <div key={tee.id} className="border-b last:border-0 py-1">
+                        <div key={tee.id} className="border-b last:border-0 py-2">
                           {/* Tee summary row */}
                           <div className="flex justify-between items-center text-sm text-gray-700">
-                            <span>{tee.name}</span>
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-medium">{tee.name}</span>
                               <span className="text-gray-400 text-xs">
-                                SR {tee.slope ?? '–'} / CR {tee.course_rating ?? '–'} / Par {tee.par_total ?? '–'}
+                                Slope {tee.slope ?? '–'} · CR {tee.course_rating ?? '–'} · Par {tee.par_total ?? '–'}
                               </span>
-                              {!expandedHoles[tee.id] && holesSaved(tee.id) && (
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {teeHasSavedHoles(tee.id) && editingTee !== tee.id && (
                                 <span className="text-xs text-green-700">{t('myCourses.holesSaved')}</span>
                               )}
                               <button
-                                onClick={() => toggleHoles(tee.id)}
-                                className="text-xs text-blue-600 underline"
+                                onClick={() => duplicateTee(layout.id, tee.id)}
+                                disabled={duplicatingTee === tee.id}
+                                className="text-xs border border-gray-300 rounded px-2 py-0.5 hover:bg-gray-50 disabled:opacity-50"
                               >
-                                {expandedHoles[tee.id] ? t('myCourses.closeHoleInfo') : t('myCourses.editHoleInfo')}
+                                {t('myCourses.duplicateTee')}
+                              </button>
+                              <button
+                                onClick={() => editingTee === tee.id ? closeTeeEdit() : openEditPanel(tee)}
+                                className="text-xs bg-green-700 text-white rounded px-2 py-0.5 hover:bg-green-800"
+                              >
+                                {editingTee === tee.id ? t('myCourses.cancel') : t('myCourses.editTee')}
                               </button>
                             </div>
                           </div>
 
-                          {/* Hull-info editor */}
-                          {expandedHoles[tee.id] && (
-                            <div className="mt-2 space-y-2">
+                          {/* Unified edit panel */}
+                          {editingTee === tee.id && teeEditForm && (
+                            <div className="mt-3 space-y-3 border-t pt-3">
+                              {/* Tee name */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600">{t('myCourses.teeName')}</label>
+                                <input
+                                  className="border rounded px-2 py-1 w-full text-sm"
+                                  value={teeEditForm.name}
+                                  onChange={e => updateTeeEditMeta('name', e.target.value)}
+                                />
+                              </div>
+
+                              {/* Slope / CR / Par grid */}
+                              <div className="grid grid-cols-3 gap-2">
+                                {[['slope', 'Slope'], ['course_rating', 'CR'], ['par_total', 'Par']].map(([field, label]) => (
+                                  <div key={field}>
+                                    <label className="block text-xs font-medium text-gray-600">{label}</label>
+                                    <input
+                                      type="number"
+                                      inputMode="numeric"
+                                      className="border rounded px-2 py-1 w-full text-sm"
+                                      value={teeEditForm[field]}
+                                      onChange={e => updateTeeEditMeta(field, e.target.value)}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                              <p className="text-xs text-gray-400">{t('myCourses.parAutoNote')}</p>
+
+                              {/* Hole table */}
                               <table className="w-full text-xs border-collapse">
                                 <thead>
                                   <tr className="text-gray-500 border-b">
@@ -385,7 +444,7 @@ export default function MyCourses() {
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {(holeData[tee.id] || emptyHoles()).map((row, idx) => (
+                                  {teeEditForm.holes.map((row, idx) => (
                                     <tr key={row.hole_number} className="border-b last:border-0">
                                       <td className="py-0.5 pr-2 text-gray-500">{row.hole_number}</td>
                                       <td className="py-0.5 pr-2">
@@ -397,7 +456,7 @@ export default function MyCourses() {
                                           className="border rounded px-1 py-0.5 w-14 text-xs"
                                           value={row.par}
                                           ref={el => { (holeInputRefs.current[tee.id] ??= [])[idx * 2] = el }}
-                                          onChange={e => handleHoleInputChange(tee.id, idx, 'par', e.target.value, idx * 2)}
+                                          onChange={e => updateTeeEditHole(tee.id, idx, 'par', e.target.value, idx * 2)}
                                         />
                                       </td>
                                       <td className="py-0.5">
@@ -409,27 +468,27 @@ export default function MyCourses() {
                                           className="border rounded px-1 py-0.5 w-14 text-xs"
                                           value={row.stroke_index}
                                           ref={el => { (holeInputRefs.current[tee.id] ??= [])[idx * 2 + 1] = el }}
-                                          onChange={e => handleHoleInputChange(tee.id, idx, 'stroke_index', e.target.value, idx * 2 + 1)}
+                                          onChange={e => updateTeeEditHole(tee.id, idx, 'stroke_index', e.target.value, idx * 2 + 1)}
                                         />
                                       </td>
                                     </tr>
                                   ))}
                                 </tbody>
                               </table>
-                              {holeErrors[tee.id] && (
-                                <p className="text-red-600 text-xs">{holeErrors[tee.id]}</p>
-                              )}
+
+                              {teeEditError && <p className="text-red-600 text-xs">{teeEditError}</p>}
+
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() => saveHoles(tee.id)}
-                                  disabled={savingHoles[tee.id]}
-                                  className="bg-green-700 text-white px-3 py-1 rounded text-xs disabled:opacity-50"
+                                  onClick={() => saveTeeEdit(layout.id)}
+                                  disabled={savingTee}
+                                  className="bg-green-700 text-white px-3 py-1 rounded text-xs disabled:opacity-50 flex-1"
                                 >
-                                  {savingHoles[tee.id] ? t('myCourses.saving') : t('myCourses.saveHoleInfo')}
+                                  {savingTee ? t('myCourses.saving') : t('myCourses.saveHoleInfo')}
                                 </button>
                                 <button
-                                  onClick={() => setExpandedHoles(prev => ({ ...prev, [tee.id]: false }))}
-                                  className="border px-3 py-1 rounded text-xs"
+                                  onClick={closeTeeEdit}
+                                  className="border px-3 py-1 rounded text-xs flex-1"
                                 >
                                   {t('myCourses.cancel')}
                                 </button>
@@ -438,6 +497,7 @@ export default function MyCourses() {
                           )}
                         </div>
                       ))}
+
                       {(layoutTees[layout.id] || []).length === 0 && addingTeeTo !== layout.id && (
                         <p className="text-gray-400 italic text-xs py-1">{t('myCourses.noTeesAdded')}</p>
                       )}

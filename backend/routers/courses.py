@@ -140,6 +140,50 @@ async def bulk_upsert_holes(tee_id: int, data: BulkHoleUpsert, db: AsyncSession 
     )
     return result.scalars().all()
 
+@router.put("/local/tees/{tee_id}")
+async def update_tee_flat(tee_id: int, data: TeeUpdate, db: AsyncSession = Depends(get_db)):
+    tee = await db.get(LocalTee, tee_id)
+    if not tee:
+        raise HTTPException(404, "Tee not found")
+    for k, v in data.model_dump(exclude_unset=True).items():
+        setattr(tee, k, v)
+    await db.commit()
+    await db.refresh(tee)
+    return tee
+
+
+@router.post("/local/tees/{tee_id}/duplicate")
+async def duplicate_tee(tee_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(LocalTee).options(selectinload(LocalTee.holes)).where(LocalTee.id == tee_id)
+    )
+    src = result.scalar_one_or_none()
+    if not src:
+        raise HTTPException(404, "Tee not found")
+    new_tee = LocalTee(
+        course_id=src.course_id,
+        name=f"{src.name} (kopi)",
+        slope=src.slope,
+        course_rating=src.course_rating,
+        par_total=src.par_total,
+    )
+    db.add(new_tee)
+    await db.flush()
+    for h in src.holes:
+        db.add(LocalHole(
+            tee_id=new_tee.id,
+            hole_number=h.hole_number,
+            par=h.par,
+            stroke_index=h.stroke_index,
+            distance_meters=h.distance_meters,
+        ))
+    await db.commit()
+    result2 = await db.execute(
+        select(LocalTee).options(selectinload(LocalTee.holes)).where(LocalTee.id == new_tee.id)
+    )
+    return result2.scalar_one()
+
+
 @router.get("/local/{layout_id:int}/tees")
 async def list_layout_tees(layout_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(LocalTee).where(LocalTee.course_id == layout_id))
