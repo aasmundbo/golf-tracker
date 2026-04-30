@@ -114,5 +114,9 @@
     "net": "Netto",
     "stableford": "Stableford",
     "projectedHcp": "Proj. hcp"
+  },
+  "search": {
+    "noResults": "Fant ingen treff",
+    "addManually": "Legg til bane manuelt"
   }
 }

@@ -18,6 +18,8 @@ export default function NewRound() {
     club_name: '', course_name: '', slope: '', course_rating: '', hcp_index: ''
   })
   const [loading, setLoading] = useState(false)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
   const [recentCourses, setRecentCourses] = useState([])
   const navigate = useNavigate()
 
@@ -26,12 +28,15 @@ export default function NewRound() {
   }, [])
 
   useEffect(() => {
-    if (!query || query.length < 2) { setResults([]); return }
+    if (!query || query.length < 2) { setResults([]); setHasSearched(false); setSearchLoading(false); return }
     const timer = setTimeout(async () => {
+      setSearchLoading(true)
       try {
         const res = await api.get(`/courses/search?q=${encodeURIComponent(query)}`)
         setResults(res.data)
+        setHasSearched(true)
       } catch {}
+      setSearchLoading(false)
     }, 400)
     return () => clearTimeout(timer)
   }, [query])
@@ -172,6 +177,17 @@ export default function NewRound() {
             </li>
           ))}
         </ul>
+      )}
+      {hasSearched && !searchLoading && results.length === 0 && !selected && (
+        <div className="text-sm text-gray-500 space-y-1 px-1">
+          <p>{t('search.noResults')}</p>
+          <button
+            onClick={() => navigate('/courses')}
+            className="text-green-700 underline"
+          >
+            {t('search.addManually')}
+          </button>
+        </div>
       )}
       {courseDetail && (
         <TeeSelector

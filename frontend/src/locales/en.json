@@ -114,5 +114,9 @@
     "net": "Net",
     "stableford": "Stableford",
     "projectedHcp": "Proj. hcp"
+  },
+  "search": {
+    "noResults": "No results found",
+    "addManually": "Add course manually"
   }
 }
