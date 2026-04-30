@@ -1,0 +1,117 @@
+{
+  "brand": "⛳ Golf Tracker",
+  "nav": {
+    "newRound": "New round",
+    "history": "History",
+    "myCourses": "My courses"
+  },
+  "newRound": {
+    "title": "New round",
+    "searchPlaceholder": "Search for course…",
+    "yourHandicap": "Your handicap",
+    "playingHandicap": "Playing handicap",
+    "startRound": "Start round",
+    "starting": "Starting…",
+    "backToSearch": "Back to search",
+    "startWithoutData": "Start without course data",
+    "startWithoutDataTitle": "Start without course data",
+    "recentlyPlayed": "Recently played",
+    "failedToStart": "Failed to start round",
+    "manualLabels": {
+      "club_name": "Course",
+      "course_name": "Course variant (optional)",
+      "slope": "Slope",
+      "course_rating": "Course rating",
+      "hcp_index": "Exact handicap"
+    }
+  },
+  "activeRound": {
+    "loading": "Loading…",
+    "exactHandicap": "Exact handicap",
+    "playingHandicap": "Playing handicap",
+    "hideScorecard": "Hide",
+    "showScorecard": "Scorecard",
+    "finishRound": "Finish round",
+    "deleteRound": "Delete round",
+    "confirmDelete": "Delete this round?"
+  },
+  "history": {
+    "title": "Round history",
+    "empty": "No rounds yet.",
+    "active": "Active",
+    "finished": "Finished",
+    "exactHandicap": "Exact handicap",
+    "playingHandicap": "Playing handicap",
+    "delete": "Delete",
+    "confirmDelete": "Delete this round?"
+  },
+  "myCourses": {
+    "title": "My courses",
+    "addCourse": "+ Add course",
+    "newCourse": "New course",
+    "courseName": "Course name",
+    "courseNamePlaceholder": "e.g. Bærum Golf Club",
+    "city": "City",
+    "country": "Country",
+    "firstLayout": "First course layout",
+    "layout": "Layout",
+    "layoutPlaceholder": "e.g. Main course",
+    "teeSpot": "Tee",
+    "teeSpotPlaceholder": "e.g. Yellow",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "noTeesAdded": "No tees added",
+    "teeName": "Tee name",
+    "teeNamePlaceholder": "e.g. Yellow",
+    "newLayout": "New layout",
+    "teeNameOptional": "Tee name",
+    "teeNameOptionalNote": "(optional, used if slope/CR is set)",
+    "teeNameOptionalPlaceholder": "e.g. White",
+    "noCourses": "No courses added yet.",
+    "confirmDeleteCourse": "Delete course? This will delete all layouts and tees.",
+    "confirmDeleteLayout": "Delete layout?",
+    "editHoleInfo": "Edit hole info",
+    "closeHoleInfo": "Close hole info",
+    "holesSaved": "18 holes saved",
+    "hole": "Hole",
+    "par": "Par",
+    "strokeIndex": "Stroke index",
+    "saveHoleInfo": "Save hole info",
+    "saving": "Saving…",
+    "saveFailed": "Save failed",
+    "addTee": "+ Add tee",
+    "addLayout": "+ Add layout",
+    "somethingWentWrong": "Something went wrong",
+    "deletionFailed": "Deletion failed"
+  },
+  "holeCard": {
+    "hole": "Hole",
+    "par": "Par",
+    "si": "SI",
+    "saveHole": "Save hole {{hole}}"
+  },
+  "holeDataPrompt": {
+    "title": "Hole {{hole}} data needed",
+    "par": "Par",
+    "strokeIndex": "Stroke Index (1–18)",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "teeSelector": {
+    "label": "Select tee"
+  },
+  "scorecard": {
+    "playingToHcp": "Playing to hcp ~{{diff}}",
+    "playingToHcpUnknown": "Playing to hcp: unknown",
+    "hole": "Hole",
+    "par": "Par",
+    "si": "SI",
+    "gross": "Gross"
+  },
+  "liveStats": {
+    "gross": "Gross",
+    "net": "Net",
+    "stableford": "Stableford"
+  }
+}

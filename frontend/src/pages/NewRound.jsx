@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import api from '../api/client'
 import TeeSelector from '../components/TeeSelector'
 
 export default function NewRound() {
+  const { t } = useTranslation()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [selected, setSelected] = useState(null)
@@ -25,13 +27,13 @@ export default function NewRound() {
 
   useEffect(() => {
     if (!query || query.length < 2) { setResults([]); return }
-    const t = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       try {
         const res = await api.get(`/courses/search?q=${encodeURIComponent(query)}`)
         setResults(res.data)
       } catch {}
     }, 400)
-    return () => clearTimeout(t)
+    return () => clearTimeout(timer)
   }, [query])
 
   const selectCourse = async (course) => {
@@ -103,27 +105,21 @@ export default function NewRound() {
       const res = await api.post('/rounds', payload)
       navigate(`/round/${res.data.id}`)
     } catch {
-      alert('Failed to start round')
+      alert(t('newRound.failedToStart'))
     } finally {
       setLoading(false)
     }
   }
 
-  const MANUAL_LABELS = {
-    club_name: 'Bane',
-    course_name: 'Banevariant (valgfritt)',
-    slope: 'Slope',
-    course_rating: 'Course rating',
-    hcp_index: 'Eksakt handicap',
-  }
+  const MANUAL_FIELDS = ['club_name', 'course_name', 'slope', 'course_rating', 'hcp_index']
 
   if (manualMode) {
     return (
       <div className="space-y-4 mt-6">
-        <h2 className="text-xl font-bold">Start uten banedata</h2>
-        {['club_name', 'course_name', 'slope', 'course_rating', 'hcp_index'].map(f => (
+        <h2 className="text-xl font-bold">{t('newRound.startWithoutDataTitle')}</h2>
+        {MANUAL_FIELDS.map(f => (
           <div key={f}>
-            <label className="block text-sm font-medium">{MANUAL_LABELS[f]}</label>
+            <label className="block text-sm font-medium">{t(`newRound.manualLabels.${f}`)}</label>
             <input
               className="border rounded px-3 py-2 w-full"
               value={manualData[f]}
@@ -136,10 +132,10 @@ export default function NewRound() {
           disabled={loading}
           className="bg-green-700 text-white px-6 py-2 rounded w-full font-semibold"
         >
-          {loading ? 'Starter…' : 'Start runde'}
+          {loading ? t('newRound.starting') : t('newRound.startRound')}
         </button>
         <button onClick={() => setManualMode(false)} className="text-sm text-gray-500 underline">
-          Tilbake til søk
+          {t('newRound.backToSearch')}
         </button>
       </div>
     )
@@ -147,10 +143,10 @@ export default function NewRound() {
 
   return (
     <div className="space-y-4 mt-6">
-      <h2 className="text-xl font-bold">Ny runde</h2>
+      <h2 className="text-xl font-bold">{t('newRound.title')}</h2>
       <input
         className="border rounded px-3 py-2 w-full"
-        placeholder="Søk etter bane…"
+        placeholder={t('newRound.searchPlaceholder')}
         value={query}
         onChange={e => setQuery(e.target.value)}
       />
@@ -185,7 +181,7 @@ export default function NewRound() {
       )}
       {selectedTee && (
         <div>
-          <label className="block text-sm font-medium">Ditt handicap</label>
+          <label className="block text-sm font-medium">{t('newRound.yourHandicap')}</label>
           <input
             type="number"
             step="0.1"
@@ -195,7 +191,7 @@ export default function NewRound() {
           />
           {playingHcp !== null && (
             <p className="text-sm text-green-700 mt-1">
-              Spillehandicap: <strong>{playingHcp}</strong>
+              {t('newRound.playingHandicap')}: <strong>{playingHcp}</strong>
             </p>
           )}
         </div>
@@ -206,15 +202,17 @@ export default function NewRound() {
           disabled={loading}
           className="bg-green-700 text-white px-6 py-2 rounded w-full font-semibold"
         >
-          {loading ? 'Starter…' : 'Start runde'}
+          {loading ? t('newRound.starting') : t('newRound.startRound')}
         </button>
       )}
       <button onClick={() => setManualMode(true)} className="text-sm text-gray-500 underline">
-        Start uten banedata
+        {t('newRound.startWithoutData')}
       </button>
       {recentCourses.length > 0 && (
         <div className="space-y-2 pt-2">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Nylig spilte</h3>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+            {t('newRound.recentlyPlayed')}
+          </h3>
           {recentCourses.map((course, i) => (
             <button
               key={i}

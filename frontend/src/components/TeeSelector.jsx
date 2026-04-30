@@ -1,4 +1,7 @@
+import { useTranslation } from 'react-i18next'
+
 export default function TeeSelector({ courseDetail, onSelect }) {
+  const { t } = useTranslation()
   const course = courseDetail?.course
   if (!course) return null
 
@@ -13,7 +16,7 @@ export default function TeeSelector({ courseDetail, onSelect }) {
 
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">Select Tee</label>
+      <label className="block text-sm font-medium mb-1">{t('teeSelector.label')}</label>
       <div className="grid gap-2">
         {tees.map((tee, i) => (
           <button key={i} onClick={() => onSelect(tee)}

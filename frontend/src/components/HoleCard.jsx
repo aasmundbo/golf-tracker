@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export default function HoleCard({ holeNumber, existingScore, playingHandicap, onSubmit }) {
+  const { t } = useTranslation()
   const [strokes, setStrokes] = useState(existingScore?.strokes || 4)
 
   useEffect(() => {
@@ -13,8 +15,8 @@ export default function HoleCard({ holeNumber, existingScore, playingHandicap, o
   return (
     <div className="bg-white border rounded-xl p-4 shadow-sm">
       <div className="flex justify-between items-center mb-3">
-        <span className="text-2xl font-bold text-green-700">Hole {holeNumber}</span>
-        {par && <span className="text-sm text-gray-500">Par {par} · SI {si}</span>}
+        <span className="text-2xl font-bold text-green-700">{t('holeCard.hole')} {holeNumber}</span>
+        {par && <span className="text-sm text-gray-500">{t('holeCard.par')} {par} · {t('holeCard.si')} {si}</span>}
       </div>
       <div className="flex items-center justify-center gap-6">
         <button onClick={() => setStrokes(s => Math.max(1, s - 1))}
@@ -25,7 +27,7 @@ export default function HoleCard({ holeNumber, existingScore, playingHandicap, o
       </div>
       <button onClick={() => onSubmit(strokes, par, si)}
         className="mt-4 w-full bg-green-700 text-white py-2 rounded font-semibold">
-        Save Hole {holeNumber}
+        {t('holeCard.saveHole', { hole: holeNumber })}
       </button>
     </div>
   )

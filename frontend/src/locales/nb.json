@@ -1,0 +1,117 @@
+{
+  "brand": "⛳ Golf Tracker",
+  "nav": {
+    "newRound": "Ny runde",
+    "history": "Historikk",
+    "myCourses": "Mine baner"
+  },
+  "newRound": {
+    "title": "Ny runde",
+    "searchPlaceholder": "Søk etter bane…",
+    "yourHandicap": "Ditt handicap",
+    "playingHandicap": "Spillehandicap",
+    "startRound": "Start runde",
+    "starting": "Starter…",
+    "backToSearch": "Tilbake til søk",
+    "startWithoutData": "Start uten banedata",
+    "startWithoutDataTitle": "Start uten banedata",
+    "recentlyPlayed": "Nylig spilte",
+    "failedToStart": "Feil: kunne ikke starte runde",
+    "manualLabels": {
+      "club_name": "Bane",
+      "course_name": "Banevariant (valgfritt)",
+      "slope": "Slope",
+      "course_rating": "Course rating",
+      "hcp_index": "Eksakt handicap"
+    }
+  },
+  "activeRound": {
+    "loading": "Laster…",
+    "exactHandicap": "Eksakt handicap",
+    "playingHandicap": "Spillehandicap",
+    "hideScorecard": "Skjul",
+    "showScorecard": "Scorekort",
+    "finishRound": "Avslutt runde",
+    "deleteRound": "Slett runde",
+    "confirmDelete": "Slett denne runden?"
+  },
+  "history": {
+    "title": "Rundehistorikk",
+    "empty": "Ingen runder ennå.",
+    "active": "Aktiv",
+    "finished": "Ferdig",
+    "exactHandicap": "Eksakt handicap",
+    "playingHandicap": "Spillehandicap",
+    "delete": "Slett",
+    "confirmDelete": "Slett denne runden?"
+  },
+  "myCourses": {
+    "title": "Mine baner",
+    "addCourse": "+ Legg til bane",
+    "newCourse": "Ny bane",
+    "courseName": "Banenavn",
+    "courseNamePlaceholder": "f.eks. Bærum Golfklubb",
+    "city": "By",
+    "country": "Land",
+    "firstLayout": "Første banevariant",
+    "layout": "Variant",
+    "layoutPlaceholder": "f.eks. Hovedbane",
+    "teeSpot": "Utslagssted",
+    "teeSpotPlaceholder": "f.eks. gul",
+    "save": "Lagre",
+    "cancel": "Avbryt",
+    "delete": "Slett",
+    "noTeesAdded": "Ingen teer lagt til",
+    "teeName": "Tee-navn",
+    "teeNamePlaceholder": "f.eks. Gul",
+    "newLayout": "Ny banevariant",
+    "teeNameOptional": "Tee-navn",
+    "teeNameOptionalNote": "(valgfritt, brukes hvis slope/CR er satt)",
+    "teeNameOptionalPlaceholder": "f.eks. Hvit",
+    "noCourses": "Ingen baner lagt til ennå.",
+    "confirmDeleteCourse": "Slett banen? Dette sletter alle varianter og teer.",
+    "confirmDeleteLayout": "Slett banevariant?",
+    "editHoleInfo": "Rediger hull-info",
+    "closeHoleInfo": "Lukk hull-info",
+    "holesSaved": "18 hull lagret",
+    "hole": "Hull",
+    "par": "Par",
+    "strokeIndex": "Slagindeks",
+    "saveHoleInfo": "Lagre hull-info",
+    "saving": "Lagrer…",
+    "saveFailed": "Lagring feilet",
+    "addTee": "+ Legg til tee",
+    "addLayout": "+ Legg til variant",
+    "somethingWentWrong": "Noe gikk galt",
+    "deletionFailed": "Sletting feilet"
+  },
+  "holeCard": {
+    "hole": "Hull",
+    "par": "Par",
+    "si": "SI",
+    "saveHole": "Lagre hull {{hole}}"
+  },
+  "holeDataPrompt": {
+    "title": "Hulldata mangler for hull {{hole}}",
+    "par": "Par",
+    "strokeIndex": "Slagindeks (1–18)",
+    "cancel": "Avbryt",
+    "save": "Lagre"
+  },
+  "teeSelector": {
+    "label": "Velg tee"
+  },
+  "scorecard": {
+    "playingToHcp": "Spiller til hcp ~{{diff}}",
+    "playingToHcpUnknown": "Spiller til hcp: ukjent",
+    "hole": "Hull",
+    "par": "Par",
+    "si": "SI",
+    "gross": "Gross"
+  },
+  "liveStats": {
+    "gross": "Gross",
+    "net": "Netto",
+    "stableford": "Stableford"
+  }
+}

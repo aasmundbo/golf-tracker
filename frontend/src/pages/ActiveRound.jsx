@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import api from '../api/client'
 import HoleCard from '../components/HoleCard'
 import LiveStats from '../components/LiveStats'
@@ -9,10 +10,11 @@ import Scorecard from '../components/Scorecard'
 export default function ActiveRound() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [round, setRound] = useState(null)
   const [stats, setStats] = useState(null)
   const [scores, setScores] = useState({})
-  const [holeData, setHoleData] = useState({}) // hole_number → {par, stroke_index}
+  const [holeData, setHoleData] = useState({})
   const [currentHole, setCurrentHole] = useState(1)
   const [holeDataNeeded, setHoleDataNeeded] = useState(null)
   const [showScorecard, setShowScorecard] = useState(false)
@@ -37,7 +39,6 @@ export default function ActiveRound() {
       } catch {}
     }
 
-    // Batch all state updates — React 18 batches synchronous setters after await
     setRound(roundData)
     setStats(liveRes.data)
     setProjection(projRes.data)
@@ -71,7 +72,7 @@ export default function ActiveRound() {
   }
 
   const deleteRound = async () => {
-    if (!confirm('Slett denne runden?')) return
+    if (!confirm(t('activeRound.confirmDelete'))) return
     await api.delete(`/rounds/${id}`)
     navigate('/')
   }
@@ -86,7 +87,7 @@ export default function ActiveRound() {
     return undefined
   }
 
-  if (!round) return <div className="mt-8 text-center">Loading…</div>
+  if (!round) return <div className="mt-8 text-center">{t('activeRound.loading')}</div>
 
   const courseLine = round.club_name
     ? `${round.club_name} · ${round.course_name}`
@@ -100,14 +101,14 @@ export default function ActiveRound() {
         <div>
           <h2 className="font-bold text-lg">{courseLine}</h2>
           <p className="text-sm text-gray-500">
-            {round.tee_name} · Eksakt handicap {round.hcp_index} → Spillehandicap {round.playing_handicap}
+            {round.tee_name} · {t('activeRound.exactHandicap')} {round.hcp_index} → {t('activeRound.playingHandicap')} {round.playing_handicap}
           </p>
         </div>
         <button
           onClick={() => setShowScorecard(!showScorecard)}
           className="text-sm text-green-700 underline"
         >
-          {showScorecard ? 'Skjul' : 'Scorekort'}
+          {showScorecard ? t('activeRound.hideScorecard') : t('activeRound.showScorecard')}
         </button>
       </div>
 
@@ -169,7 +170,7 @@ export default function ActiveRound() {
           onClick={finishRound}
           className="w-full bg-gray-800 text-white py-2 rounded font-semibold"
         >
-          Avslutt runde
+          {t('activeRound.finishRound')}
         </button>
       )}
 
@@ -178,7 +179,7 @@ export default function ActiveRound() {
           onClick={deleteRound}
           className="w-full border border-red-300 text-red-500 py-2 rounded text-sm"
         >
-          Slett runde
+          {t('activeRound.deleteRound')}
         </button>
       )}
     </div>

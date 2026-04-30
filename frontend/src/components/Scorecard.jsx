@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 function Sparkline({ holeByHole, hcpIndex }) {
   const values = holeByHole.map(h => h.projected_differential_after_hole)
   const allValues = [...values, hcpIndex].filter(v => v != null)
@@ -27,13 +29,14 @@ function Sparkline({ holeByHole, hcpIndex }) {
 }
 
 export default function Scorecard({ scores, totalHoles, projection, hcpIndex }) {
+  const { t } = useTranslation()
   const diff = projection?.projected_differential ?? null
   const labelColor = diff == null
     ? 'text-gray-400'
     : diff < hcpIndex ? 'text-green-600' : 'text-red-500'
   const labelText = diff == null
-    ? 'Spiller til hcp: ukjent'
-    : `Spiller til hcp ~${diff.toFixed(1)}`
+    ? t('scorecard.playingToHcpUnknown')
+    : t('scorecard.playingToHcp', { diff: diff.toFixed(1) })
 
   return (
     <div className="space-y-2">
@@ -43,10 +46,10 @@ export default function Scorecard({ scores, totalHoles, projection, hcpIndex }) 
         <table className="text-sm w-full border-collapse">
           <thead>
             <tr className="bg-green-50">
-              <th className="border px-2 py-1">Hole</th>
-              <th className="border px-2 py-1">Par</th>
-              <th className="border px-2 py-1">SI</th>
-              <th className="border px-2 py-1">Gross</th>
+              <th className="border px-2 py-1">{t('scorecard.hole')}</th>
+              <th className="border px-2 py-1">{t('scorecard.par')}</th>
+              <th className="border px-2 py-1">{t('scorecard.si')}</th>
+              <th className="border px-2 py-1">{t('scorecard.gross')}</th>
             </tr>
           </thead>
           <tbody>

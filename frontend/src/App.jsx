@@ -1,19 +1,28 @@
-import { Routes, Route, Link } from 'react-router-dom'
+import { Routes, Route, NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import NewRound from './pages/NewRound'
 import ActiveRound from './pages/ActiveRound'
 import History from './pages/History'
 import MyCourses from './pages/MyCourses'
+import LanguageSwitcher from './components/LanguageSwitcher'
+
+const NAV_ITEMS = [
+  { to: '/', icon: '🏌️', key: 'nav.newRound', end: true },
+  { to: '/history', icon: '📋', key: 'nav.history' },
+  { to: '/courses', icon: '🗺️', key: 'nav.myCourses' },
+]
 
 export default function App() {
+  const { t } = useTranslation()
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-green-700 text-white p-4 flex gap-6 items-center">
-        <span className="font-bold text-lg">⛳ Golf Tracker</span>
-        <Link to="/" className="hover:underline">Ny runde</Link>
-        <Link to="/history" className="hover:underline">Historikk</Link>
-        <Link to="/courses" className="hover:underline">Mine baner</Link>
-      </nav>
-      <main className="max-w-2xl mx-auto p-4">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-green-700 text-white flex items-center justify-between px-4 py-3">
+        <span className="font-bold text-lg">{t('brand')}</span>
+        <LanguageSwitcher />
+      </header>
+
+      <main className="max-w-2xl mx-auto px-4 pt-14 pb-20">
         <Routes>
           <Route path="/" element={<NewRound />} />
           <Route path="/round/:id" element={<ActiveRound />} />
@@ -21,6 +30,27 @@ export default function App() {
           <Route path="/courses" element={<MyCourses />} />
         </Routes>
       </main>
+
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="max-w-2xl mx-auto flex">
+          {NAV_ITEMS.map(({ to, icon, key, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                `flex-1 flex flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+                  isActive ? 'text-green-700' : 'text-gray-400'
+                }`
+              }
+            >
+              <span className="text-xl leading-none">{icon}</span>
+              <span>{t(key)}</span>
+            </NavLink>
+          ))}
+        </div>
+      </nav>
     </div>
   )
 }

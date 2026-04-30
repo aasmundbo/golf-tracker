@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import api from '../api/client'
 
 const EMPTY_COURSE_FORM = { name: '', city: '', country: '', layout_name: 'Hovedbane', tee_name: 'Gul', slope: '', course_rating: '', par_total: '' }
@@ -9,29 +10,27 @@ const emptyHoleRow = (n) => ({ hole_number: n, par: '', stroke_index: '' })
 const emptyHoles = () => Array.from({ length: 18 }, (_, i) => emptyHoleRow(i + 1))
 
 export default function MyCourses() {
+  const { t } = useTranslation()
   const [courses, setCourses] = useState([])
   const [expandedCourse, setExpandedCourse] = useState(null)
-  const [layouts, setLayouts] = useState({})         // course_id → layout[]
+  const [layouts, setLayouts] = useState({})
   const [expandedLayout, setExpandedLayout] = useState(null)
-  const [layoutTees, setLayoutTees] = useState({})   // layout_id → tee[]
+  const [layoutTees, setLayoutTees] = useState({})
 
   const [addingCourse, setAddingCourse] = useState(false)
   const [courseForm, setCourseForm] = useState(EMPTY_COURSE_FORM)
   const [courseError, setCourseError] = useState(null)
 
-  const [addingLayoutTo, setAddingLayoutTo] = useState(null)  // course_id
+  const [addingLayoutTo, setAddingLayoutTo] = useState(null)
   const [layoutForm, setLayoutForm] = useState(EMPTY_LAYOUT_FORM)
 
-  const [addingTeeTo, setAddingTeeTo] = useState(null)        // layout_id
+  const [addingTeeTo, setAddingTeeTo] = useState(null)
   const [teeForm, setTeeForm] = useState(EMPTY_TEE_FORM)
 
-  // hull-info state: tee_id-keyed
-  const [expandedHoles, setExpandedHoles] = useState({})   // tee_id → bool
-  const [holeData, setHoleData] = useState({})             // tee_id → hole[]
-  const [savingHoles, setSavingHoles] = useState({})        // tee_id → bool
-  const [holeErrors, setHoleErrors] = useState({})          // tee_id → string|null
-
-  // ── Load ────────────────────────────────────────────────────────────────────
+  const [expandedHoles, setExpandedHoles] = useState({})
+  const [holeData, setHoleData] = useState({})
+  const [savingHoles, setSavingHoles] = useState({})
+  const [holeErrors, setHoleErrors] = useState({})
 
   const loadCourses = () =>
     api.get('/courses').then(r => setCourses(r.data)).catch(() => {})
@@ -61,8 +60,6 @@ export default function MyCourses() {
     return res.data
   }
 
-  // ── Toggle expand ────────────────────────────────────────────────────────────
-
   const toggleCourse = async (courseId) => {
     if (expandedCourse === courseId) { setExpandedCourse(null); return }
     setExpandedCourse(courseId)
@@ -82,8 +79,6 @@ export default function MyCourses() {
       await loadHoles(teeId)
     }
   }
-
-  // ── Top-level course ─────────────────────────────────────────────────────────
 
   const addCourse = async () => {
     if (!courseForm.name.trim()) return
@@ -107,23 +102,21 @@ export default function MyCourses() {
       setCourseForm(EMPTY_COURSE_FORM)
       loadCourses()
     } catch (err) {
-      setCourseError(err.response?.data?.detail ?? err.message ?? 'Noe gikk galt')
+      setCourseError(err.response?.data?.detail ?? err.message ?? t('myCourses.somethingWentWrong'))
     }
   }
 
   const deleteCourse = async (id) => {
-    if (!confirm('Slett banen? Dette sletter alle varianter og teer.')) return
+    if (!confirm(t('myCourses.confirmDeleteCourse'))) return
     try {
       await api.delete(`/courses/${id}`)
       setExpandedCourse(prev => (prev === id ? null : prev))
       setLayouts(prev => { const n = { ...prev }; delete n[id]; return n })
       loadCourses()
     } catch (err) {
-      alert(err.response?.data?.detail ?? err.message ?? 'Sletting feilet')
+      alert(err.response?.data?.detail ?? err.message ?? t('myCourses.deletionFailed'))
     }
   }
-
-  // ── Layout (variant) ─────────────────────────────────────────────────────────
 
   const addLayout = async (courseId) => {
     if (!layoutForm.name.trim()) return
@@ -141,7 +134,7 @@ export default function MyCourses() {
   }
 
   const deleteLayout = async (courseId, layoutId) => {
-    if (!confirm('Slett banevariant?')) return
+    if (!confirm(t('myCourses.confirmDeleteLayout'))) return
     await api.delete(`/courses/local/${layoutId}`)
     setLayouts(prev => ({
       ...prev,
@@ -149,8 +142,6 @@ export default function MyCourses() {
     }))
     if (expandedLayout === layoutId) setExpandedLayout(null)
   }
-
-  // ── Tee ──────────────────────────────────────────────────────────────────────
 
   const addTee = async (layoutId) => {
     if (!teeForm.name.trim()) return
@@ -164,8 +155,6 @@ export default function MyCourses() {
     setTeeForm(EMPTY_TEE_FORM)
     await loadTees(layoutId)
   }
-
-  // ── Hull-info ─────────────────────────────────────────────────────────────────
 
   const updateHoleField = (teeId, holeIndex, field, value) => {
     setHoleData(prev => {
@@ -191,7 +180,7 @@ export default function MyCourses() {
     } catch (err) {
       setHoleErrors(prev => ({
         ...prev,
-        [teeId]: err.response?.data?.detail ?? err.message ?? 'Lagring feilet',
+        [teeId]: err.response?.data?.detail ?? err.message ?? t('myCourses.saveFailed'),
       }))
     } finally {
       setSavingHoles(prev => ({ ...prev, [teeId]: false }))
@@ -203,64 +192,64 @@ export default function MyCourses() {
     return rows && rows.some(r => r.par !== '' && r.par !== null)
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────────
-
   return (
     <div className="space-y-4 mt-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Mine baner</h2>
+        <h2 className="text-xl font-bold">{t('myCourses.title')}</h2>
         <button
           onClick={() => { setAddingCourse(!addingCourse); setCourseForm(EMPTY_COURSE_FORM); setCourseError(null) }}
           className="bg-green-700 text-white px-3 py-1 rounded text-sm"
         >
-          + Legg til bane
+          {t('myCourses.addCourse')}
         </button>
       </div>
 
       {/* New top-level course form */}
       {addingCourse && (
         <div className="bg-white border rounded-xl p-4 space-y-3">
-          <h3 className="font-semibold text-sm">Ny bane</h3>
+          <h3 className="font-semibold text-sm">{t('myCourses.newCourse')}</h3>
           <div>
-            <label className="block text-sm font-medium">Banenavn</label>
+            <label className="block text-sm font-medium">{t('myCourses.courseName')}</label>
             <input
               className="border rounded px-3 py-2 w-full"
-              placeholder="f.eks. Bærum Golfklubb"
+              placeholder={t('myCourses.courseNamePlaceholder')}
               value={courseForm.name}
               onChange={e => setCourseForm(d => ({ ...d, name: e.target.value }))}
             />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-sm font-medium">By</label>
+              <label className="block text-sm font-medium">{t('myCourses.city')}</label>
               <input className="border rounded px-3 py-2 w-full" value={courseForm.city}
                 onChange={e => setCourseForm(d => ({ ...d, city: e.target.value }))} />
             </div>
             <div>
-              <label className="block text-sm font-medium">Land</label>
+              <label className="block text-sm font-medium">{t('myCourses.country')}</label>
               <input className="border rounded px-3 py-2 w-full" value={courseForm.country}
                 onChange={e => setCourseForm(d => ({ ...d, country: e.target.value }))} />
             </div>
           </div>
           <div className="border-t pt-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Første banevariant</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+              {t('myCourses.firstLayout')}
+            </p>
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-sm font-medium">Variant</label>
+                  <label className="block text-sm font-medium">{t('myCourses.layout')}</label>
                   <input
                     className="border rounded px-3 py-2 w-full"
-                    placeholder="f.eks. Hovedbane"
+                    placeholder={t('myCourses.layoutPlaceholder')}
                     value={courseForm.layout_name}
                     onChange={e => setCourseForm(d => ({ ...d, layout_name: e.target.value }))}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">Utslagssted</label>
+                  <label className="block text-sm font-medium">{t('myCourses.teeSpot')}</label>
                   <input
                     className="border rounded px-3 py-2 w-full"
-                    placeholder="f.eks. gul"
+                    placeholder={t('myCourses.teeSpotPlaceholder')}
                     value={courseForm.tee_name}
                     onChange={e => setCourseForm(d => ({ ...d, tee_name: e.target.value }))}
                   />
@@ -285,8 +274,12 @@ export default function MyCourses() {
             <p className="text-red-600 text-sm">{courseError}</p>
           )}
           <div className="flex gap-2">
-            <button type="button" onClick={addCourse} className="bg-green-700 text-white px-4 py-2 rounded flex-1 text-sm">Lagre</button>
-            <button type="button" onClick={() => { setAddingCourse(false); setCourseForm(EMPTY_COURSE_FORM); setCourseError(null) }} className="border px-4 py-2 rounded flex-1 text-sm">Avbryt</button>
+            <button type="button" onClick={addCourse} className="bg-green-700 text-white px-4 py-2 rounded flex-1 text-sm">
+              {t('myCourses.save')}
+            </button>
+            <button type="button" onClick={() => { setAddingCourse(false); setCourseForm(EMPTY_COURSE_FORM); setCourseError(null) }} className="border px-4 py-2 rounded flex-1 text-sm">
+              {t('myCourses.cancel')}
+            </button>
           </div>
         </div>
       )}
@@ -309,7 +302,7 @@ export default function MyCourses() {
                 onClick={e => { e.stopPropagation(); deleteCourse(course.id) }}
                 className="text-red-500 text-sm"
               >
-                Slett
+                {t('myCourses.delete')}
               </button>
               <span className="text-gray-400 text-sm select-none">
                 {expandedCourse === course.id ? '▲' : '▼'}
@@ -335,7 +328,7 @@ export default function MyCourses() {
                         onClick={e => { e.stopPropagation(); deleteLayout(course.id, layout.id) }}
                         className="text-red-500 text-xs"
                       >
-                        Slett
+                        {t('myCourses.delete')}
                       </button>
                       <span className="text-gray-400 text-xs select-none">
                         {expandedLayout === layout.id ? '▲' : '▼'}
@@ -346,40 +339,40 @@ export default function MyCourses() {
                   {/* Expanded: tees */}
                   {expandedLayout === layout.id && (
                     <div className="border-t px-3 py-2 space-y-1">
-                      {(layoutTees[layout.id] || []).map(t => (
-                        <div key={t.id} className="border-b last:border-0 py-1">
+                      {(layoutTees[layout.id] || []).map(tee => (
+                        <div key={tee.id} className="border-b last:border-0 py-1">
                           {/* Tee summary row */}
                           <div className="flex justify-between items-center text-sm text-gray-700">
-                            <span>{t.name}</span>
+                            <span>{tee.name}</span>
                             <div className="flex items-center gap-3">
                               <span className="text-gray-400 text-xs">
-                                SR {t.slope ?? '–'} / CR {t.course_rating ?? '–'} / Par {t.par_total ?? '–'}
+                                SR {tee.slope ?? '–'} / CR {tee.course_rating ?? '–'} / Par {tee.par_total ?? '–'}
                               </span>
-                              {!expandedHoles[t.id] && holesSaved(t.id) && (
-                                <span className="text-xs text-green-700">18 hull lagret</span>
+                              {!expandedHoles[tee.id] && holesSaved(tee.id) && (
+                                <span className="text-xs text-green-700">{t('myCourses.holesSaved')}</span>
                               )}
                               <button
-                                onClick={() => toggleHoles(t.id)}
+                                onClick={() => toggleHoles(tee.id)}
                                 className="text-xs text-blue-600 underline"
                               >
-                                {expandedHoles[t.id] ? 'Lukk hull-info' : 'Rediger hull-info'}
+                                {expandedHoles[tee.id] ? t('myCourses.closeHoleInfo') : t('myCourses.editHoleInfo')}
                               </button>
                             </div>
                           </div>
 
                           {/* Hull-info editor */}
-                          {expandedHoles[t.id] && (
+                          {expandedHoles[tee.id] && (
                             <div className="mt-2 space-y-2">
                               <table className="w-full text-xs border-collapse">
                                 <thead>
                                   <tr className="text-gray-500 border-b">
-                                    <th className="text-left py-1 pr-2 font-medium">Hull</th>
-                                    <th className="text-left py-1 pr-2 font-medium">Par</th>
-                                    <th className="text-left py-1 font-medium">Slagindeks</th>
+                                    <th className="text-left py-1 pr-2 font-medium">{t('myCourses.hole')}</th>
+                                    <th className="text-left py-1 pr-2 font-medium">{t('myCourses.par')}</th>
+                                    <th className="text-left py-1 font-medium">{t('myCourses.strokeIndex')}</th>
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {(holeData[t.id] || emptyHoles()).map((row, idx) => (
+                                  {(holeData[tee.id] || emptyHoles()).map((row, idx) => (
                                     <tr key={row.hole_number} className="border-b last:border-0">
                                       <td className="py-0.5 pr-2 text-gray-500">{row.hole_number}</td>
                                       <td className="py-0.5 pr-2">
@@ -389,7 +382,7 @@ export default function MyCourses() {
                                           max={6}
                                           className="border rounded px-1 py-0.5 w-14 text-xs"
                                           value={row.par}
-                                          onChange={e => updateHoleField(t.id, idx, 'par', e.target.value)}
+                                          onChange={e => updateHoleField(tee.id, idx, 'par', e.target.value)}
                                         />
                                       </td>
                                       <td className="py-0.5">
@@ -399,29 +392,29 @@ export default function MyCourses() {
                                           max={18}
                                           className="border rounded px-1 py-0.5 w-14 text-xs"
                                           value={row.stroke_index}
-                                          onChange={e => updateHoleField(t.id, idx, 'stroke_index', e.target.value)}
+                                          onChange={e => updateHoleField(tee.id, idx, 'stroke_index', e.target.value)}
                                         />
                                       </td>
                                     </tr>
                                   ))}
                                 </tbody>
                               </table>
-                              {holeErrors[t.id] && (
-                                <p className="text-red-600 text-xs">{holeErrors[t.id]}</p>
+                              {holeErrors[tee.id] && (
+                                <p className="text-red-600 text-xs">{holeErrors[tee.id]}</p>
                               )}
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() => saveHoles(t.id)}
-                                  disabled={savingHoles[t.id]}
+                                  onClick={() => saveHoles(tee.id)}
+                                  disabled={savingHoles[tee.id]}
                                   className="bg-green-700 text-white px-3 py-1 rounded text-xs disabled:opacity-50"
                                 >
-                                  {savingHoles[t.id] ? 'Lagrer…' : 'Lagre hull-info'}
+                                  {savingHoles[tee.id] ? t('myCourses.saving') : t('myCourses.saveHoleInfo')}
                                 </button>
                                 <button
-                                  onClick={() => setExpandedHoles(prev => ({ ...prev, [t.id]: false }))}
+                                  onClick={() => setExpandedHoles(prev => ({ ...prev, [tee.id]: false }))}
                                   className="border px-3 py-1 rounded text-xs"
                                 >
-                                  Avbryt
+                                  {t('myCourses.cancel')}
                                 </button>
                               </div>
                             </div>
@@ -429,17 +422,17 @@ export default function MyCourses() {
                         </div>
                       ))}
                       {(layoutTees[layout.id] || []).length === 0 && addingTeeTo !== layout.id && (
-                        <p className="text-gray-400 italic text-xs py-1">Ingen teer lagt til</p>
+                        <p className="text-gray-400 italic text-xs py-1">{t('myCourses.noTeesAdded')}</p>
                       )}
 
                       {/* Add tee inline form */}
                       {addingTeeTo === layout.id ? (
                         <div className="pt-2 space-y-2">
                           <div>
-                            <label className="block text-xs font-medium text-gray-600">Tee-navn</label>
+                            <label className="block text-xs font-medium text-gray-600">{t('myCourses.teeName')}</label>
                             <input
                               className="border rounded px-2 py-1 w-full text-sm"
-                              placeholder="f.eks. Gul"
+                              placeholder={t('myCourses.teeNamePlaceholder')}
                               value={teeForm.name}
                               onChange={e => setTeeForm(d => ({ ...d, name: e.target.value }))}
                             />
@@ -462,13 +455,13 @@ export default function MyCourses() {
                               onClick={() => addTee(layout.id)}
                               className="bg-green-700 text-white px-3 py-1 rounded text-xs flex-1"
                             >
-                              Lagre
+                              {t('myCourses.save')}
                             </button>
                             <button
                               onClick={() => { setAddingTeeTo(null); setTeeForm(EMPTY_TEE_FORM) }}
                               className="border px-3 py-1 rounded text-xs flex-1"
                             >
-                              Avbryt
+                              {t('myCourses.cancel')}
                             </button>
                           </div>
                         </div>
@@ -477,7 +470,7 @@ export default function MyCourses() {
                           onClick={() => { setAddingTeeTo(layout.id); setTeeForm(EMPTY_TEE_FORM) }}
                           className="text-xs text-green-700 underline pt-1 block"
                         >
-                          + Legg til tee
+                          {t('myCourses.addTee')}
                         </button>
                       )}
                     </div>
@@ -488,12 +481,12 @@ export default function MyCourses() {
               {/* Add layout inline form */}
               {addingLayoutTo === course.id ? (
                 <div className="bg-white border rounded-lg p-3 space-y-2">
-                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Ny banevariant</p>
+                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{t('myCourses.newLayout')}</p>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600">Variant</label>
+                    <label className="block text-xs font-medium text-gray-600">{t('myCourses.layout')}</label>
                     <input
                       className="border rounded px-2 py-1 w-full text-sm"
-                      placeholder="f.eks. Hovedbane"
+                      placeholder={t('myCourses.layoutPlaceholder')}
                       value={layoutForm.name}
                       onChange={e => setLayoutForm(d => ({ ...d, name: e.target.value }))}
                     />
@@ -513,11 +506,11 @@ export default function MyCourses() {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600">
-                      Tee-navn <span className="text-gray-400 font-normal">(valgfritt, brukes hvis slope/CR er satt)</span>
+                      {t('myCourses.teeNameOptional')} <span className="text-gray-400 font-normal">{t('myCourses.teeNameOptionalNote')}</span>
                     </label>
                     <input
                       className="border rounded px-2 py-1 w-full text-sm"
-                      placeholder="f.eks. Hvit"
+                      placeholder={t('myCourses.teeNameOptionalPlaceholder')}
                       value={layoutForm.tee_name}
                       onChange={e => setLayoutForm(d => ({ ...d, tee_name: e.target.value }))}
                     />
@@ -527,13 +520,13 @@ export default function MyCourses() {
                       onClick={() => addLayout(course.id)}
                       className="bg-green-700 text-white px-3 py-1 rounded text-sm flex-1"
                     >
-                      Lagre
+                      {t('myCourses.save')}
                     </button>
                     <button
                       onClick={() => { setAddingLayoutTo(null); setLayoutForm(EMPTY_LAYOUT_FORM) }}
                       className="border px-3 py-1 rounded text-sm flex-1"
                     >
-                      Avbryt
+                      {t('myCourses.cancel')}
                     </button>
                   </div>
                 </div>
@@ -542,7 +535,7 @@ export default function MyCourses() {
                   onClick={() => { setAddingLayoutTo(course.id); setLayoutForm(EMPTY_LAYOUT_FORM) }}
                   className="text-sm text-green-700 underline"
                 >
-                  + Legg til variant
+                  {t('myCourses.addLayout')}
                 </button>
               )}
             </div>
@@ -551,7 +544,7 @@ export default function MyCourses() {
       ))}
 
       {courses.length === 0 && !addingCourse && (
-        <p className="text-gray-500 text-center py-8">Ingen baner lagt til ennå.</p>
+        <p className="text-gray-500 text-center py-8">{t('myCourses.noCourses')}</p>
       )}
     </div>
   )
