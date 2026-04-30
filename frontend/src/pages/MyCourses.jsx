@@ -33,11 +33,22 @@ export default function MyCourses() {
   const [savingTee, setSavingTee] = useState(false)
   const [teeEditError, setTeeEditError] = useState(null)
   const [duplicatingTee, setDuplicatingTee] = useState(null)
+  const [openTeeMenu, setOpenTeeMenu] = useState(null)
 
   // Hole data cache for "18 hull lagret" badge
   const [holeData, setHoleData] = useState({})
 
   const holeInputRefs = useRef({})
+  const teeMenuRef = useRef(null)
+
+  useEffect(() => {
+    if (!openTeeMenu) return
+    const handleClick = (e) => {
+      if (teeMenuRef.current && !teeMenuRef.current.contains(e.target)) setOpenTeeMenu(null)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [openTeeMenu])
 
   const loadCourses = () =>
     api.get('/courses').then(r => setCourses(r.data)).catch(() => {})
@@ -152,6 +163,16 @@ export default function MyCourses() {
       alert(err.response?.data?.detail ?? err.message ?? t('myCourses.somethingWentWrong'))
     } finally {
       setDuplicatingTee(null)
+    }
+  }
+
+  const deleteTee = async (layoutId, teeId) => {
+    if (!confirm(t('myCourses.confirmDeleteTee'))) return
+    try {
+      await api.delete(`/courses/local/tees/${teeId}`)
+      await loadTees(layoutId)
+    } catch (err) {
+      alert(err.response?.data?.detail ?? err.message ?? t('myCourses.deletionFailed'))
     }
   }
 
@@ -389,18 +410,36 @@ export default function MyCourses() {
                                 <span className="text-xs text-green-700">{t('myCourses.holesSaved')}</span>
                               )}
                               <button
-                                onClick={() => duplicateTee(layout.id, tee.id)}
-                                disabled={duplicatingTee === tee.id}
-                                className="text-xs border border-gray-300 rounded px-2 py-0.5 hover:bg-gray-50 disabled:opacity-50"
-                              >
-                                {t('myCourses.duplicateTee')}
-                              </button>
-                              <button
                                 onClick={() => editingTee === tee.id ? closeTeeEdit() : openEditPanel(tee)}
                                 className="text-xs bg-green-700 text-white rounded px-2 py-0.5 hover:bg-green-800"
                               >
                                 {editingTee === tee.id ? t('myCourses.cancel') : t('myCourses.editTee')}
                               </button>
+                              <div className="relative" ref={openTeeMenu === tee.id ? teeMenuRef : null}>
+                                <button
+                                  onClick={() => setOpenTeeMenu(v => v === tee.id ? null : tee.id)}
+                                  className="text-xs border border-gray-300 rounded px-2 py-0.5 hover:bg-gray-50"
+                                >
+                                  ⋯
+                                </button>
+                                {openTeeMenu === tee.id && (
+                                  <div className="absolute right-0 top-full mt-1 bg-white border rounded shadow-lg min-w-[120px] z-10">
+                                    <button
+                                      onClick={() => { setOpenTeeMenu(null); duplicateTee(layout.id, tee.id) }}
+                                      disabled={duplicatingTee === tee.id}
+                                      className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 disabled:opacity-50"
+                                    >
+                                      {t('myCourses.duplicateTee')}
+                                    </button>
+                                    <button
+                                      onClick={() => { setOpenTeeMenu(null); deleteTee(layout.id, tee.id) }}
+                                      className="w-full text-left px-3 py-1.5 text-xs text-red-500 hover:bg-red-50"
+                                    >
+                                      {t('myCourses.delete')}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
 

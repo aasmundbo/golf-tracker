@@ -82,6 +82,7 @@
     "addLayout": "+ Add course",
     "somethingWentWrong": "Something went wrong",
     "deletionFailed": "Deletion failed",
+    "confirmDeleteTee": "Delete tee?",
     "editTee": "Edit",
     "duplicateTee": "Duplicate",
     "parAutoNote": "par field can be overridden, or calculated automatically as the sum of hole pars"

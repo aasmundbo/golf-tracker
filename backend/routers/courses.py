@@ -152,6 +152,19 @@ async def update_tee_flat(tee_id: int, data: TeeUpdate, db: AsyncSession = Depen
     return tee
 
 
+@router.delete("/local/tees/{tee_id}")
+async def delete_tee(tee_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(LocalTee).options(selectinload(LocalTee.holes)).where(LocalTee.id == tee_id)
+    )
+    tee = result.scalar_one_or_none()
+    if not tee:
+        raise HTTPException(404, "Tee not found")
+    await db.delete(tee)
+    await db.commit()
+    return {"ok": True}
+
+
 @router.post("/local/tees/{tee_id}/duplicate")
 async def duplicate_tee(tee_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(

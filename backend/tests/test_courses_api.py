@@ -227,6 +227,30 @@ async def test_duplicate_tee_404(client):
     assert resp.status_code == 404
 
 
+async def test_delete_tee(client):
+    club = await _create_club(client, "Delete Tee Club")
+    layout_resp = await client.post(f"/api/courses/{club['id']}/layouts", json={
+        "name": "Bane",
+        "slope": 120.0,
+        "course_rating": 68.0,
+        "par_total": 72,
+    })
+    layout_id = layout_resp.json()["id"]
+    tee_id = (await client.get(f"/api/courses/local/{layout_id}/tees")).json()[0]["id"]
+
+    del_resp = await client.delete(f"/api/courses/local/tees/{tee_id}")
+    assert del_resp.status_code == 200
+    assert del_resp.json() == {"ok": True}
+
+    tees = (await client.get(f"/api/courses/local/{layout_id}/tees")).json()
+    assert all(t["id"] != tee_id for t in tees)
+
+
+async def test_delete_tee_404(client):
+    resp = await client.delete("/api/courses/local/tees/99999")
+    assert resp.status_code == 404
+
+
 async def test_search_returns_local_results(client):
     club = await _create_club(client, "Bærum GK")
     await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Gul"})

@@ -82,6 +82,7 @@
     "addLayout": "+ Legg til bane",
     "somethingWentWrong": "Noe gikk galt",
     "deletionFailed": "Sletting feilet",
+    "confirmDeleteTee": "Slett tee?",
     "editTee": "Rediger",
     "duplicateTee": "Dupliser",
     "parAutoNote": "par-feltet kan overstyres, eller beregnes automatisk som sum av hull-parene"
