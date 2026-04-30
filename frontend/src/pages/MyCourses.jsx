@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../api/client'
 
@@ -184,6 +184,18 @@ export default function MyCourses() {
       }))
     } finally {
       setSavingHoles(prev => ({ ...prev, [teeId]: false }))
+    }
+  }
+
+  const holeInputRefs = useRef({})
+
+  const handleHoleInputChange = (teeId, holeIndex, field, value, flatIndex) => {
+    updateHoleField(teeId, holeIndex, field, value)
+    const len = value.length
+    if (len >= 2 || (len === 1 && value !== '1')) {
+      const refs = holeInputRefs.current[teeId] || []
+      const next = refs[flatIndex + 1]
+      if (next) { next.focus(); next.select() }
     }
   }
 
@@ -384,7 +396,8 @@ export default function MyCourses() {
                                           inputMode="numeric"
                                           className="border rounded px-1 py-0.5 w-14 text-xs"
                                           value={row.par}
-                                          onChange={e => updateHoleField(tee.id, idx, 'par', e.target.value)}
+                                          ref={el => { (holeInputRefs.current[tee.id] ??= [])[idx * 2] = el }}
+                                          onChange={e => handleHoleInputChange(tee.id, idx, 'par', e.target.value, idx * 2)}
                                         />
                                       </td>
                                       <td className="py-0.5">
@@ -395,7 +408,8 @@ export default function MyCourses() {
                                           inputMode="numeric"
                                           className="border rounded px-1 py-0.5 w-14 text-xs"
                                           value={row.stroke_index}
-                                          onChange={e => updateHoleField(tee.id, idx, 'stroke_index', e.target.value)}
+                                          ref={el => { (holeInputRefs.current[tee.id] ??= [])[idx * 2 + 1] = el }}
+                                          onChange={e => handleHoleInputChange(tee.id, idx, 'stroke_index', e.target.value, idx * 2 + 1)}
                                         />
                                       </td>
                                     </tr>
