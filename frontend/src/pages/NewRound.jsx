@@ -123,7 +123,8 @@ export default function NewRound() {
       <div className="space-y-4 mt-6">
         <h2 className="text-xl font-bold">{t('newRound.startWithoutDataTitle')}</h2>
         {MANUAL_FIELDS.map(f => {
-          const isNumeric = ['slope', 'course_rating', 'hcp_index'].includes(f)
+          const isDecimal = ['slope', 'course_rating'].includes(f)
+          const isNumeric = isDecimal || f === 'hcp_index'
           return (
             <div key={f}>
               <label className="block text-sm font-medium">{t(`newRound.manualLabels.${f}`)}</label>
@@ -131,7 +132,7 @@ export default function NewRound() {
                 className="border rounded px-3 py-2 w-full"
                 value={manualData[f]}
                 onChange={e => setManualData(d => ({ ...d, [f]: e.target.value }))}
-                {...(isNumeric ? { inputMode: 'numeric', pattern: '[0-9]*' } : {})}
+                {...(isNumeric ? { inputMode: isDecimal ? 'decimal' : 'numeric', pattern: '[0-9]*' } : {})}
               />
             </div>
           )

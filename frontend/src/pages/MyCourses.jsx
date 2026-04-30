@@ -325,7 +325,7 @@ export default function MyCourses() {
                     <label className="block text-sm font-medium">{label}</label>
                     <input
                       type="number"
-                      inputMode="numeric"
+                      inputMode={field === 'par_total' ? 'numeric' : 'decimal'}
                       className="border rounded px-3 py-2 w-full"
                       value={courseForm[field]}
                       onChange={e => setCourseForm(d => ({ ...d, [field]: e.target.value }))}
@@ -463,7 +463,7 @@ export default function MyCourses() {
                                     <label className="block text-xs font-medium text-gray-600">{label}</label>
                                     <input
                                       type="number"
-                                      inputMode="numeric"
+                                      inputMode={field === 'par_total' ? 'numeric' : 'decimal'}
                                       className="border rounded px-2 py-1 w-full text-sm"
                                       value={teeEditForm[field]}
                                       onChange={e => updateTeeEditMeta(field, e.target.value)}
@@ -559,7 +559,7 @@ export default function MyCourses() {
                                 <label className="block text-xs font-medium text-gray-600">{label}</label>
                                 <input
                                   type="number"
-                                  inputMode="numeric"
+                                  inputMode={field === 'par_total' ? 'numeric' : 'decimal'}
                                   className="border rounded px-2 py-1 w-full text-sm"
                                   value={teeForm[field]}
                                   onChange={e => setTeeForm(d => ({ ...d, [field]: e.target.value }))}
@@ -614,7 +614,7 @@ export default function MyCourses() {
                         <label className="block text-xs font-medium text-gray-600">{label}</label>
                         <input
                           type="number"
-                          inputMode="numeric"
+                          inputMode={field === 'par_total' ? 'numeric' : 'decimal'}
                           className="border rounded px-2 py-1 w-full text-sm"
                           value={layoutForm[field]}
                           onChange={e => setLayoutForm(d => ({ ...d, [field]: e.target.value }))}
