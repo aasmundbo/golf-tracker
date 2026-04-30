@@ -21,7 +21,7 @@ export default function HoleDataPrompt({ holeNumber, onSubmit, onCancel }) {
         </div>
         <div>
           <label className="block text-sm font-medium">{t('holeDataPrompt.strokeIndex')}</label>
-          <input type="number" min="1" max="18" className="border rounded px-3 py-2 w-full mt-1"
+          <input type="number" min="1" max="18" inputMode="numeric" className="border rounded px-3 py-2 w-full mt-1"
             value={si} onChange={e => setSi(e.target.value)} />
         </div>
         <div className="flex gap-2">

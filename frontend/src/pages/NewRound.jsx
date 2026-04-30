@@ -122,16 +122,20 @@ export default function NewRound() {
     return (
       <div className="space-y-4 mt-6">
         <h2 className="text-xl font-bold">{t('newRound.startWithoutDataTitle')}</h2>
-        {MANUAL_FIELDS.map(f => (
-          <div key={f}>
-            <label className="block text-sm font-medium">{t(`newRound.manualLabels.${f}`)}</label>
-            <input
-              className="border rounded px-3 py-2 w-full"
-              value={manualData[f]}
-              onChange={e => setManualData(d => ({ ...d, [f]: e.target.value }))}
-            />
-          </div>
-        ))}
+        {MANUAL_FIELDS.map(f => {
+          const isNumeric = ['slope', 'course_rating', 'hcp_index'].includes(f)
+          return (
+            <div key={f}>
+              <label className="block text-sm font-medium">{t(`newRound.manualLabels.${f}`)}</label>
+              <input
+                className="border rounded px-3 py-2 w-full"
+                value={manualData[f]}
+                onChange={e => setManualData(d => ({ ...d, [f]: e.target.value }))}
+                {...(isNumeric ? { inputMode: 'numeric', pattern: '[0-9]*' } : {})}
+              />
+            </div>
+          )
+        })}
         <button
           onClick={startRound}
           disabled={loading}
@@ -201,6 +205,7 @@ export default function NewRound() {
           <input
             type="number"
             step="0.1"
+            inputMode="numeric"
             className="border rounded px-3 py-2 w-full"
             value={hcp}
             onChange={e => { setHcp(e.target.value); calcPlayingHcp(selectedTee, e.target.value) }}

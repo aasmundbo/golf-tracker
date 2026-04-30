@@ -261,6 +261,7 @@ export default function MyCourses() {
                     <label className="block text-sm font-medium">{label}</label>
                     <input
                       type="number"
+                      inputMode="numeric"
                       className="border rounded px-3 py-2 w-full"
                       value={courseForm[field]}
                       onChange={e => setCourseForm(d => ({ ...d, [field]: e.target.value }))}
@@ -380,6 +381,7 @@ export default function MyCourses() {
                                           type="number"
                                           min={3}
                                           max={6}
+                                          inputMode="numeric"
                                           className="border rounded px-1 py-0.5 w-14 text-xs"
                                           value={row.par}
                                           onChange={e => updateHoleField(tee.id, idx, 'par', e.target.value)}
@@ -390,6 +392,7 @@ export default function MyCourses() {
                                           type="number"
                                           min={1}
                                           max={18}
+                                          inputMode="numeric"
                                           className="border rounded px-1 py-0.5 w-14 text-xs"
                                           value={row.stroke_index}
                                           onChange={e => updateHoleField(tee.id, idx, 'stroke_index', e.target.value)}
@@ -443,6 +446,7 @@ export default function MyCourses() {
                                 <label className="block text-xs font-medium text-gray-600">{label}</label>
                                 <input
                                   type="number"
+                                  inputMode="numeric"
                                   className="border rounded px-2 py-1 w-full text-sm"
                                   value={teeForm[field]}
                                   onChange={e => setTeeForm(d => ({ ...d, [field]: e.target.value }))}
@@ -497,6 +501,7 @@ export default function MyCourses() {
                         <label className="block text-xs font-medium text-gray-600">{label}</label>
                         <input
                           type="number"
+                          inputMode="numeric"
                           className="border rounded px-2 py-1 w-full text-sm"
                           value={layoutForm[field]}
                           onChange={e => setLayoutForm(d => ({ ...d, [field]: e.target.value }))}
