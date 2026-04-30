@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../api/client'
 
-const EMPTY_COURSE_FORM = { name: '', city: '', country: '', layout_name: 'Hovedbane', tee_name: 'gul', slope: '', course_rating: '', par_total: '' }
+const EMPTY_COURSE_FORM = { name: '', city: '', country: '', layout_name: 'Hovedbane', tee_name: 'Gul', slope: '', course_rating: '', par_total: '' }
 const EMPTY_LAYOUT_FORM = { name: '', slope: '', course_rating: '', par_total: '', tee_name: '' }
 const EMPTY_TEE_FORM = { name: '', slope: '', course_rating: '', par_total: '' }
 

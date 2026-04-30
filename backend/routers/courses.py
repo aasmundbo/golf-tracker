@@ -50,7 +50,7 @@ async def create_layout(course_id: int, data: LayoutCreate, db: AsyncSession = D
     if data.slope is not None or data.course_rating is not None:
         db.add(LocalTee(
             course_id=layout.id,
-            name=data.tee_name or 'gul',
+            name=data.tee_name or 'Gul',
             slope=data.slope,
             course_rating=data.course_rating,
             par_total=data.par_total,

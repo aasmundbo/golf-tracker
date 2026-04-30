@@ -118,7 +118,7 @@ async def test_create_layout_default_tee_name_is_gul(client):
 
     tees = (await client.get(f"/api/courses/local/{layout_id}/tees")).json()
     assert len(tees) == 1
-    assert tees[0]["name"] == "gul"
+    assert tees[0]["name"] == "Gul"
 
 
 # ── bulk upsert holes (PUT /local/tees/{tee_id}/holes) ───────────────────────

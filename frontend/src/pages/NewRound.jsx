@@ -16,7 +16,12 @@ export default function NewRound() {
     club_name: '', course_name: '', slope: '', course_rating: '', hcp_index: ''
   })
   const [loading, setLoading] = useState(false)
+  const [recentCourses, setRecentCourses] = useState([])
   const navigate = useNavigate()
+
+  useEffect(() => {
+    api.get('/rounds/recent-courses').then(r => setRecentCourses(r.data)).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!query || query.length < 2) { setResults([]); return }
@@ -48,6 +53,25 @@ export default function NewRound() {
       parseFloat(hcpVal) * (tee.slope / 113) + (tee.course_rating - (tee.par_total || 72))
     )
     setPlayingHcp(ph)
+  }
+
+  const selectRecentCourse = (course) => {
+    const label = course.club_name
+      ? `${course.club_name} — ${course.course_name}`
+      : (course.course_name || '')
+    setQuery(label)
+    setResults([])
+    setCourseDetail(null)
+    const tee = {
+      id: course.tee_id,
+      name: course.tee_name,
+      slope: course.slope,
+      course_rating: course.course_rating,
+      par_total: course.par_total,
+    }
+    setSelectedTee(tee)
+    setSelected({ source: 'local', club_name: course.club_name, name: course.course_name })
+    calcPlayingHcp(tee, hcp)
   }
 
   const startRound = async () => {
@@ -161,7 +185,7 @@ export default function NewRound() {
       )}
       {selectedTee && (
         <div>
-          <label className="block text-sm font-medium">Eksakt handicap</label>
+          <label className="block text-sm font-medium">Ditt handicap</label>
           <input
             type="number"
             step="0.1"
@@ -188,6 +212,31 @@ export default function NewRound() {
       <button onClick={() => setManualMode(true)} className="text-sm text-gray-500 underline">
         Start uten banedata
       </button>
+      {recentCourses.length > 0 && (
+        <div className="space-y-2 pt-2">
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Nylig spilte</h3>
+          {recentCourses.map((course, i) => (
+            <button
+              key={i}
+              onClick={() => selectRecentCourse(course)}
+              className="w-full text-left bg-white border rounded-xl px-4 py-3 hover:bg-green-50 active:bg-green-100 transition-colors"
+            >
+              <div className="font-medium text-sm">
+                {course.club_name || course.course_name}
+              </div>
+              {course.club_name && course.course_name !== course.club_name && (
+                <div className="text-xs text-gray-500">{course.course_name}</div>
+              )}
+              <div className="text-xs text-gray-400 mt-0.5">
+                {course.tee_name && <span>{course.tee_name} · </span>}
+                {course.slope && <span>SR {course.slope}</span>}
+                {course.course_rating && <span> / CR {course.course_rating}</span>}
+                {course.par_total && <span> / Par {course.par_total}</span>}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

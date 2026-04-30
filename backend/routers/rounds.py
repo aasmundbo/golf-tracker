@@ -85,6 +85,32 @@ async def list_rounds(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Round).order_by(Round.started_at.desc()))
     return result.scalars().all()
 
+# ── Literal-path routes (must come before /{round_id}) ───────────────────────
+
+@router.get("/recent-courses")
+async def get_recent_courses(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Round).order_by(Round.started_at.desc()))
+    rounds = result.scalars().all()
+    seen: set[str] = set()
+    recent = []
+    for r in rounds:
+        key = r.course_name or ''
+        if key in seen:
+            continue
+        seen.add(key)
+        recent.append({
+            "club_name": r.club_name,
+            "course_name": r.course_name,
+            "tee_name": r.tee_name,
+            "tee_id": r.tee_id,
+            "slope": r.slope,
+            "course_rating": r.course_rating,
+            "par_total": r.par_total,
+        })
+        if len(recent) == 3:
+            break
+    return recent
+
 @router.get("/{round_id}")
 async def get_round(round_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Round).where(Round.id == round_id))
