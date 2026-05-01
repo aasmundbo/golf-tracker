@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next'
 
 export default function HoleCard({ holeNumber, existingScore, playingHandicap, onSubmit }) {
   const { t } = useTranslation()
-  const [strokes, setStrokes] = useState(existingScore?.strokes || 4)
+  const [strokes, setStrokes] = useState(existingScore?.strokes || existingScore?.hole_par || 4)
 
   useEffect(() => {
-    setStrokes(existingScore?.strokes || 4)
+    setStrokes(existingScore?.strokes || existingScore?.hole_par || 4)
   }, [holeNumber, existingScore])
 
   const par = existingScore?.hole_par

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-function getHandicapStrokes(playingHcp, si) {
+export function getHandicapStrokes(playingHcp, si) {
   if (playingHcp == null || si == null || playingHcp <= 0) return 0
   const base = Math.floor(playingHcp / 18)
   const remainder = playingHcp % 18

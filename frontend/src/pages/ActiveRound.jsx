@@ -5,7 +5,7 @@ import api from '../api/client'
 import HoleCard from '../components/HoleCard'
 import LiveStats from '../components/LiveStats'
 import HoleDataPrompt from '../components/HoleDataPrompt'
-import Scorecard, { ScoreIndicator } from '../components/Scorecard'
+import Scorecard, { ScoreIndicator, getHandicapStrokes } from '../components/Scorecard'
 
 export default function ActiveRound() {
   const { id } = useParams()
@@ -98,6 +98,17 @@ export default function ActiveRound() {
     return undefined
   }
 
+  const getHoleNavBg = (score) => {
+    const net = score.strokes - getHandicapStrokes(round.playing_handicap, score.hole_stroke_index)
+    const netToPar = net - score.hole_par
+    if (netToPar <= -2) return 'bg-green-100'
+    if (netToPar === -1) return 'bg-green-50'
+    if (netToPar === 0) return ''
+    if (netToPar === 1) return 'bg-stone-100'
+    if (netToPar === 2) return 'bg-gray-200'
+    return 'bg-red-100'
+  }
+
   if (!round) return <div className="mt-8 text-center">{t('activeRound.loading')}</div>
 
   const courseLine = round.club_name
@@ -168,7 +179,7 @@ export default function ActiveRound() {
               onClick={() => setCurrentHole(h)}
               className={`w-8 h-8 flex items-center justify-center rounded text-sm font-medium ${
                 s
-                  ? h === currentHole ? 'ring-2 ring-green-600' : ''
+                  ? `${getHoleNavBg(s)}${h === currentHole ? ' ring-2 ring-green-600' : ''}`
                   : h === currentHole
                   ? 'bg-green-100 border-2 border-green-600'
                   : 'bg-gray-100'
