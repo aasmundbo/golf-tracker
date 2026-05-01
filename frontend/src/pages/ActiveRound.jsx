@@ -167,11 +167,10 @@ export default function ActiveRound() {
               key={h}
               onClick={() => setCurrentHole(h)}
               className={`w-8 h-8 flex items-center justify-center rounded text-sm font-medium ${
-                s
-                  ? `bg-green-600 text-white${h === currentHole ? ' ring-2 ring-green-600' : ''}`
-                  : h === currentHole
-                  ? 'bg-gray-100 border-2 border-green-600'
-                  : 'bg-gray-100'
+                s && h === currentHole ? 'bg-green-600 text-white ring-2 ring-green-600'
+                : s ? 'bg-green-600 text-white'
+                : h === currentHole ? 'bg-gray-100 border-2 border-green-600'
+                : 'bg-gray-100'
               }`}
             >
               {s ? (
