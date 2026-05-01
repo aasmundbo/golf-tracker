@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 export default function LiveStats({ stats, projection, hcpIndex }) {
   const { t } = useTranslation()
   const sign = n => n > 0 ? `+${n}` : String(n)
+  const parFmt = n => n === 0 ? 'E' : n > 0 ? `+${n}` : String(n)
   const diff = projection?.projected_differential ?? null
   const hcpColor = diff == null
     ? 'text-gray-400'
@@ -11,8 +12,8 @@ export default function LiveStats({ stats, projection, hcpIndex }) {
   return (
     <div className="grid grid-cols-4 gap-2 bg-white border rounded-xl p-3">
       <div className="text-center">
-        <div className={`text-xl font-bold ${stats.gross_to_par > 0 ? 'text-red-600' : stats.gross_to_par < 0 ? 'text-green-600' : ''}`}>
-          {sign(stats.gross_to_par)}
+        <div className={`text-lg font-bold ${stats.gross_to_par > 0 ? 'text-red-600' : stats.gross_to_par < 0 ? 'text-green-600' : ''}`}>
+          {stats.gross_total} ({parFmt(stats.gross_to_par)})
         </div>
         <div className="text-xs text-gray-500">{t('liveStats.gross')}</div>
       </div>
