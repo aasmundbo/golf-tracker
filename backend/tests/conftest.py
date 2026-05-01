@@ -5,6 +5,7 @@ from httpx import AsyncClient, ASGITransport
 import database
 from database import Base, get_db
 from main import app
+from auth import get_current_user
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
@@ -32,7 +33,11 @@ async def client():
         async with TestSessionLocal() as session:
             yield session
 
+    async def override_get_current_user():
+        return "admin"
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         yield c
