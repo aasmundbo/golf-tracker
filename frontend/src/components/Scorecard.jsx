@@ -1,5 +1,64 @@
 import { useTranslation } from 'react-i18next'
 
+function getHandicapStrokes(playingHcp, si) {
+  if (playingHcp == null || si == null || playingHcp <= 0) return 0
+  const base = Math.floor(playingHcp / 18)
+  const remainder = playingHcp % 18
+  return base + (si <= remainder ? 1 : 0)
+}
+
+function ScoreIndicator({ gross, par, si, playingHcp }) {
+  if (gross == null || par == null) {
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28 }}>
+        {gross ?? '-'}
+      </span>
+    )
+  }
+
+  const net = gross - getHandicapStrokes(playingHcp, si)
+  const netToPar = net - par
+
+  const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, boxSizing: 'border-box' }
+
+  if (netToPar <= -2) {
+    return (
+      <span style={{ ...base, borderRadius: '50%', border: '2px solid #22c55e', outline: '2px solid #22c55e', outlineOffset: '2px', color: '#15803d' }}>
+        {gross}
+      </span>
+    )
+  }
+  if (netToPar === -1) {
+    return (
+      <span style={{ ...base, borderRadius: '50%', border: '2px solid #22c55e', color: '#15803d' }}>
+        {gross}
+      </span>
+    )
+  }
+  if (netToPar === 0) {
+    return <span style={base}>{gross}</span>
+  }
+  if (netToPar === 1) {
+    return (
+      <span style={{ ...base, borderRadius: '2px', border: '2px solid var(--color-text-primary, #111827)' }}>
+        {gross}
+      </span>
+    )
+  }
+  if (netToPar === 2) {
+    return (
+      <span style={{ ...base, borderRadius: '2px', border: '2px solid var(--color-text-primary, #111827)', outline: '2px solid var(--color-text-primary, #111827)', outlineOffset: '2px' }}>
+        {gross}
+      </span>
+    )
+  }
+  return (
+    <span style={{ ...base, borderRadius: '2px', border: '2px solid #ef4444', outline: '2px solid #ef4444', outlineOffset: '2px', color: '#b91c1c' }}>
+      {gross}
+    </span>
+  )
+}
+
 function Sparkline({ holeByHole, hcpIndex }) {
   const values = holeByHole.map(h => h.projected_differential_after_hole)
   const allValues = [...values, hcpIndex].filter(v => v != null)
@@ -36,7 +95,7 @@ function Sparkline({ holeByHole, hcpIndex }) {
   )
 }
 
-export default function Scorecard({ scores, totalHoles, projection, hcpIndex }) {
+export default function Scorecard({ scores, totalHoles, projection, hcpIndex, playingHandicap }) {
   const { t } = useTranslation()
 
   return (
@@ -59,7 +118,11 @@ export default function Scorecard({ scores, totalHoles, projection, hcpIndex }) 
                   <td className="border px-2 py-1 text-center">{h}</td>
                   <td className="border px-2 py-1 text-center">{s?.hole_par ?? '-'}</td>
                   <td className="border px-2 py-1 text-center">{s?.hole_stroke_index ?? '-'}</td>
-                  <td className="border px-2 py-1 text-center font-medium">{s?.strokes ?? '-'}</td>
+                  <td className="border px-2 py-1 text-center font-medium">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ScoreIndicator gross={s?.strokes} par={s?.hole_par} si={s?.hole_stroke_index} playingHcp={playingHandicap} />
+                    </div>
+                  </td>
                 </tr>
               )
             })}

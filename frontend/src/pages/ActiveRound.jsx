@@ -131,6 +131,7 @@ export default function ActiveRound() {
           totalHoles={totalHoles}
           projection={projection}
           hcpIndex={round.hcp_index}
+          playingHandicap={round.playing_handicap}
         />
       )}
 
