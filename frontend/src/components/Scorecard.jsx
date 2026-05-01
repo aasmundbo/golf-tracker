@@ -7,7 +7,7 @@ function getHandicapStrokes(playingHcp, si) {
   return base + (si <= remainder ? 1 : 0)
 }
 
-function ScoreIndicator({ gross, par, si, playingHcp }) {
+export function ScoreIndicator({ gross, par, si, playingHcp }) {
   if (gross == null || par == null) {
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28 }}>

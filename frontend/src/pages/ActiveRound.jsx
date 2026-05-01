@@ -5,7 +5,7 @@ import api from '../api/client'
 import HoleCard from '../components/HoleCard'
 import LiveStats from '../components/LiveStats'
 import HoleDataPrompt from '../components/HoleDataPrompt'
-import Scorecard from '../components/Scorecard'
+import Scorecard, { ScoreIndicator } from '../components/Scorecard'
 
 export default function ActiveRound() {
   const { id } = useParams()
@@ -160,21 +160,31 @@ export default function ActiveRound() {
       )}
 
       <div className="flex gap-2 flex-wrap">
-        {Array.from({ length: totalHoles }, (_, i) => i + 1).map(h => (
-          <button
-            key={h}
-            onClick={() => setCurrentHole(h)}
-            className={`w-8 h-8 rounded text-sm font-medium ${
-              scores[h]
-                ? 'bg-green-600 text-white'
-                : h === currentHole
-                ? 'bg-green-100 border-2 border-green-600'
-                : 'bg-gray-100'
-            }`}
-          >
-            {h}
-          </button>
-        ))}
+        {Array.from({ length: totalHoles }, (_, i) => i + 1).map(h => {
+          const s = scores[h]
+          return (
+            <button
+              key={h}
+              onClick={() => setCurrentHole(h)}
+              className={`w-8 h-8 flex items-center justify-center rounded text-sm font-medium ${
+                s
+                  ? h === currentHole ? 'ring-2 ring-green-600' : ''
+                  : h === currentHole
+                  ? 'bg-green-100 border-2 border-green-600'
+                  : 'bg-gray-100'
+              }`}
+            >
+              {s ? (
+                <ScoreIndicator
+                  gross={s.strokes}
+                  par={s.hole_par}
+                  si={s.hole_stroke_index}
+                  playingHcp={round.playing_handicap}
+                />
+              ) : h}
+            </button>
+          )
+        })}
       </div>
 
       {round.status === 'active' && (
