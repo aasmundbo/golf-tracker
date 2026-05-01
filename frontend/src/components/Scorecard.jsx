@@ -11,8 +11,9 @@ function Sparkline({ holeByHole, hcpIndex }) {
   const mapX = h => PX + ((h - 1) / 17) * (W - 2 * PX)
   const mapY = v => PY + ((maxVal - v) / range) * (H - 2 * PY)
 
-  const points = values.map((v, i) => `${mapX(i + 1)},${mapY(v)}`).join(' ')
+  const coords = values.map((v, i) => ({ x: mapX(i + 1), y: mapY(v), v }))
   const hcpY = mapY(hcpIndex)
+  const color = v => v > hcpIndex ? '#ef4444' : '#22c55e'
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 56 }}>
@@ -20,9 +21,16 @@ function Sparkline({ holeByHole, hcpIndex }) {
         x1={PX} y1={hcpY} x2={W - PX} y2={hcpY}
         stroke="#9ca3af" strokeWidth="1" strokeDasharray="4 2"
       />
-      <polyline points={points} fill="none" stroke="#16a34a" strokeWidth="1.5" />
-      {values.map((v, i) => (
-        <circle key={i} cx={mapX(i + 1)} cy={mapY(v)} r="2" fill="#16a34a" />
+      {coords.slice(1).map((pt, i) => (
+        <line
+          key={i}
+          x1={coords[i].x} y1={coords[i].y}
+          x2={pt.x} y2={pt.y}
+          stroke={color(pt.v)} strokeWidth="1.5"
+        />
+      ))}
+      {coords.map((pt, i) => (
+        <circle key={i} cx={pt.x} cy={pt.y} r="2" fill={color(pt.v)} />
       ))}
     </svg>
   )
