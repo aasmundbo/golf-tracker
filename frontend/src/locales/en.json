@@ -18,11 +18,11 @@
     "recentlyPlayed": "Recently played",
     "failedToStart": "Failed to start round",
     "manualLabels": {
-      "club_name": "Course",
+      "club_name": "Club",
       "course_name": "Course variant (optional)",
       "slope": "Slope",
       "course_rating": "Course rating",
-      "hcp_index": "Exact handicap"
+      "hcp_index": "Your handicap"
     }
   },
   "activeRound": {

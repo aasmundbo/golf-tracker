@@ -15,7 +15,7 @@ export default function NewRound() {
   const [playingHcp, setPlayingHcp] = useState(null)
   const [manualMode, setManualMode] = useState(false)
   const [manualData, setManualData] = useState({
-    club_name: '', course_name: '', slope: '', course_rating: '', hcp_index: ''
+    club_name: '', course_name: 'Hovedbane', slope: '', course_rating: '', hcp_index: ''
   })
   const [loading, setLoading] = useState(false)
   const [searchLoading, setSearchLoading] = useState(false)

@@ -18,11 +18,11 @@
     "recentlyPlayed": "Nylig spilte",
     "failedToStart": "Feil: kunne ikke starte runde",
     "manualLabels": {
-      "club_name": "Bane",
+      "club_name": "Klubb",
       "course_name": "Banevariant (valgfritt)",
       "slope": "Slope",
       "course_rating": "Course rating",
-      "hcp_index": "Eksakt handicap"
+      "hcp_index": "Ditt handicap"
     }
   },
   "activeRound": {
