@@ -20,14 +20,55 @@ A self-hosted golf round tracker with handicap calculation, Stableford scoring, 
 
 ```bash
 cp .env.example .env
-# Edit .env and set your GOLF_COURSE_API_KEY
+# Edit .env with your keys — see Authentication below for the auth vars
 ```
 
-`.env` contents:
+`.env` lives at `~/apps/golf-tracker/.env`. Full contents:
 
 ```
 GOLF_COURSE_API_KEY=your_key_here
 DATABASE_URL=sqlite:///./data/golf.db
+
+ADMIN_USERNAME=your_username
+ADMIN_PASSWORD_HASH=$$2b$$12$$...   # bcrypt hash — see Authentication below
+JWT_SECRET=your_jwt_secret
+```
+
+## Authentication
+
+The app uses a single admin user configured entirely via environment variables — no user database.
+
+### Required env vars
+
+| Variable | Description |
+|---|---|
+| `ADMIN_USERNAME` | The login username |
+| `ADMIN_PASSWORD_HASH` | bcrypt hash of the password |
+| `JWT_SECRET` | Secret used to sign JWT tokens |
+
+### Generate the password hash
+
+```bash
+cd backend
+python3 -c "from passlib.context import CryptContext; print(CryptContext(schemes=['bcrypt']).hash('your-password'))"
+```
+
+### Generate the JWT secret
+
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
+```
+
+### `$` escaping in `.env` files
+
+bcrypt hashes contain `$` characters (e.g. `$2b$12$abc...`). Docker Compose performs variable substitution on `.env` values, so every `$` must be doubled to `$$`:
+
+```
+# Wrong — Docker Compose will mangle the hash
+ADMIN_PASSWORD_HASH=$2b$12$abc...
+
+# Correct
+ADMIN_PASSWORD_HASH=$$2b$$12$$abc...
 ```
 
 ## Running
