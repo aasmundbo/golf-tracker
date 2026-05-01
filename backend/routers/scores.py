@@ -25,8 +25,16 @@ async def record_score(round_id: int, data: ScoreCreate, db: AsyncSession = Depe
     round_ = result.scalar_one_or_none()
     if not round_:
         raise HTTPException(404, "Round not found")
-    score = HoleScore(round_id=round_id, **data.model_dump())
-    db.add(score)
+    existing = await db.execute(
+        select(HoleScore).where(HoleScore.round_id == round_id, HoleScore.hole_number == data.hole_number)
+    )
+    score = existing.scalar_one_or_none()
+    if score:
+        for k, v in data.model_dump().items():
+            setattr(score, k, v)
+    else:
+        score = HoleScore(round_id=round_id, **data.model_dump())
+        db.add(score)
     if round_.tee_id and data.hole_par and data.hole_stroke_index:
         await _upsert_local_hole(db, round_.tee_id, data.hole_number, data.hole_par, data.hole_stroke_index)
     await db.commit()

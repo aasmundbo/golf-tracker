@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -26,6 +26,7 @@ class Round(Base):
 
 class HoleScore(Base):
     __tablename__ = "hole_scores"
+    __table_args__ = (UniqueConstraint("round_id", "hole_number", name="uq_hole_scores_round_hole"),)
     id = Column(Integer, primary_key=True)
     round_id = Column(Integer, ForeignKey("rounds.id"), nullable=False)
     hole_number = Column(Integer, nullable=False)

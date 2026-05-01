@@ -118,17 +118,18 @@ async def get_round(round_id: int, db: AsyncSession = Depends(get_db)):
     if not round_:
         raise HTTPException(404)
     score_result = await db.execute(
-        select(HoleScore).where(HoleScore.round_id == round_id).order_by(HoleScore.hole_number)
+        select(HoleScore).where(HoleScore.round_id == round_id).order_by(HoleScore.hole_number, HoleScore.id.desc())
     )
-    scores = [
-        {
-            "hole_number": s.hole_number,
-            "strokes": s.strokes,
-            "hole_par": s.hole_par,
-            "hole_stroke_index": s.hole_stroke_index,
-        }
-        for s in score_result.scalars().all()
-    ]
+    seen: dict[int, dict] = {}
+    for s in score_result.scalars().all():
+        if s.hole_number not in seen:
+            seen[s.hole_number] = {
+                "hole_number": s.hole_number,
+                "strokes": s.strokes,
+                "hole_par": s.hole_par,
+                "hole_stroke_index": s.hole_stroke_index,
+            }
+    scores = [seen[h] for h in sorted(seen)]
     response = {c.key: getattr(round_, c.key) for c in Round.__table__.columns}
     response["scores"] = scores
     return response
@@ -162,17 +163,18 @@ async def get_live_stats(round_id: int, db: AsyncSession = Depends(get_db)):
     if not round_:
         raise HTTPException(404)
     score_result = await db.execute(
-        select(HoleScore).where(HoleScore.round_id == round_id).order_by(HoleScore.hole_number)
+        select(HoleScore).where(HoleScore.round_id == round_id).order_by(HoleScore.hole_number, HoleScore.id.desc())
     )
-    scores = [
-        {
-            "hole_number": s.hole_number,
-            "strokes": s.strokes,
-            "hole_par": s.hole_par,
-            "hole_stroke_index": s.hole_stroke_index,
-        }
-        for s in score_result.scalars().all()
-    ]
+    seen: dict[int, dict] = {}
+    for s in score_result.scalars().all():
+        if s.hole_number not in seen:
+            seen[s.hole_number] = {
+                "hole_number": s.hole_number,
+                "strokes": s.strokes,
+                "hole_par": s.hole_par,
+                "hole_stroke_index": s.hole_stroke_index,
+            }
+    scores = [seen[h] for h in sorted(seen)]
     stats = calculate_live_stats(scores, round_.playing_handicap)
     return {**stats, "playing_handicap": round_.playing_handicap, "hcp_index": round_.hcp_index}
 
