@@ -120,5 +120,12 @@
   "search": {
     "noResults": "Fant ingen treff",
     "addManually": "Legg til bane manuelt"
-  }
+  },
+  "login": {
+    "username": "Brukernavn",
+    "password": "Passord",
+    "submit": "Logg inn",
+    "error": "Ugyldig brukernavn eller passord"
+  },
+  "logout": "Logg ut"
 }

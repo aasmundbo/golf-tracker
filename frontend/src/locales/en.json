@@ -120,5 +120,12 @@
   "search": {
     "noResults": "No results found",
     "addManually": "Add course manually"
-  }
+  },
+  "login": {
+    "username": "Username",
+    "password": "Password",
+    "submit": "Log in",
+    "error": "Invalid username or password"
+  },
+  "logout": "Log out"
 }
