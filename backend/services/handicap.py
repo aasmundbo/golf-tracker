@@ -93,13 +93,16 @@ def calculate_live_stats(scores: list[dict], playing_handicap: int, total_holes:
     par_played = 0
 
     for s in scores:
-        par = s.get("hole_par") or 4
+        strokes = s.get("strokes")
+        hole_par = s.get("hole_par")
+        if strokes is None or hole_par is None:
+            continue
         hcp_strokes = handicap_strokes_on_hole(s.get("hole_stroke_index"), playing_handicap)
-        gross_total += s["strokes"]
-        par_played += par
-        net = net_score_on_hole(s["strokes"], par, hcp_strokes)
+        gross_total += strokes
+        par_played += hole_par
+        net = net_score_on_hole(strokes, hole_par, hcp_strokes)
         net_total += net
-        stableford_total += max(0, 2 + hcp_strokes - (s["strokes"] - par))
+        stableford_total += max(0, 2 + hcp_strokes - (strokes - hole_par))
 
     return {
         "holes_played": len(scores),

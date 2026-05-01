@@ -127,5 +127,6 @@
     "submit": "Logg inn",
     "error": "Ugyldig brukernavn eller passord"
   },
-  "logout": "Logg ut"
+  "logout": "Logg ut",
+  "gross": "Brutto"
 }

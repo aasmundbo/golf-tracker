@@ -15,7 +15,7 @@ export default function LiveStats({ stats, projection, hcpIndex }) {
         <div className={`text-lg font-bold ${stats.gross_to_par > 0 ? 'text-red-600' : stats.gross_to_par < 0 ? 'text-green-600' : ''}`}>
           {stats.gross_total} ({parFmt(stats.gross_to_par)})
         </div>
-        <div className="text-xs text-gray-500">{t('liveStats.gross')}</div>
+        <div className="text-xs text-gray-500">{t('gross')}</div>
       </div>
       <div className="text-center">
         <div className={`text-xl font-bold ${stats.net_to_par > 0 ? 'text-red-600' : stats.net_to_par < 0 ? 'text-green-600' : ''}`}>

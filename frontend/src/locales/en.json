@@ -127,5 +127,6 @@
     "submit": "Log in",
     "error": "Invalid username or password"
   },
-  "logout": "Log out"
+  "logout": "Log out",
+  "gross": "Gross"
 }
