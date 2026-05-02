@@ -213,3 +213,12 @@ async def test_projected_handicap_requires_hole_data(client):
     resp = await client.get(f"/api/rounds/{round_data['id']}/projected_handicap")
     assert resp.status_code == 200
     assert resp.json()["projected_differential"] is None
+
+
+# ── user_id column ────────────────────────────────────────────────────────────
+
+async def test_round_user_id_column_exists_and_nullable(client):
+    # user_id column is present; router doesn't set it yet so it's null
+    data = await _create_round(client, STANDARD_ROUND)
+    assert "user_id" in data
+    assert data["user_id"] is None
