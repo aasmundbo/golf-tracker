@@ -3,15 +3,21 @@ import os
 import sqlite3
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 
 def main() -> None:
-    db_url = os.environ.get("DATABASE_URL", "sqlite:///./golf.db")
+    db_url = os.environ.get("DATABASE_URL", "sqlite:///./data/golf.db")
     if "sqlite" not in db_url:
         print("This script only supports SQLite.")
         sys.exit(1)
 
     # Extract filesystem path from URL (handles both sqlite:/// and sqlite+aiosqlite:///)
     db_path = db_url.split("///", 1)[-1]
+
+    parent = os.path.dirname(db_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
