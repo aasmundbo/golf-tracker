@@ -273,7 +273,10 @@ async def upsert_hole(layout_id: int, tee_id: int, data: HoleUpsert, db: AsyncSe
 @router.get("/{prefixed_id}")
 async def get_course_by_prefixed_id(prefixed_id: str, db: AsyncSession = Depends(get_db)):
     if prefixed_id.startswith("local:"):
-        lid = int(prefixed_id.split(":")[1])
+        try:
+            lid = int(prefixed_id.split(":")[1])
+        except (ValueError, IndexError):
+            raise HTTPException(400, "Invalid course ID format")
         result = await db.execute(
             select(LocalCourse)
             .options(selectinload(LocalCourse.tees).selectinload(LocalTee.holes))
@@ -284,7 +287,10 @@ async def get_course_by_prefixed_id(prefixed_id: str, db: AsyncSession = Depends
             raise HTTPException(404)
         return {"source": "local", "course": layout}
     elif prefixed_id.startswith("api:"):
-        aid = prefixed_id.split(":")[1]
+        parts = prefixed_id.split(":")
+        if len(parts) < 2 or not parts[1]:
+            raise HTTPException(400, "Invalid course ID format")
+        aid = parts[1]
         data = await course_api.get_course(aid, db)
         if not data:
             raise HTTPException(404)

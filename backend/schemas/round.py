@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 class RoundCreate(BaseModel):
@@ -12,7 +12,7 @@ class RoundCreate(BaseModel):
     slope: float
     course_rating: float
     par_total: Optional[int] = 72
-    hcp_index: float
+    hcp_index: float = Field(..., ge=0.0, le=54.0)
 
 class RoundResponse(BaseModel):
     id: int

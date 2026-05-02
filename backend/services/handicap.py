@@ -74,14 +74,11 @@ def calculate_projected_handicap(
     }
 
 def handicap_strokes_on_hole(hole_stroke_index: int | None, playing_handicap: int) -> int:
-    if hole_stroke_index is None:
+    if hole_stroke_index is None or playing_handicap <= 0:
         return 0
-    strokes = 0
-    if playing_handicap >= hole_stroke_index:
-        strokes += 1
-    if playing_handicap > 18 and hole_stroke_index <= (playing_handicap - 18):
-        strokes += 1
-    return strokes
+    base = playing_handicap // 18
+    extra = playing_handicap % 18
+    return base + (1 if hole_stroke_index <= extra else 0)
 
 def net_score_on_hole(strokes: int, par: int, hcp_strokes: int) -> int:
     return strokes - par - hcp_strokes
@@ -91,12 +88,14 @@ def calculate_live_stats(scores: list[dict], playing_handicap: int, total_holes:
     net_total = 0
     stableford_total = 0
     par_played = 0
+    holes_played = 0
 
     for s in scores:
         strokes = s.get("strokes")
         hole_par = s.get("hole_par")
         if strokes is None or hole_par is None:
             continue
+        holes_played += 1
         hcp_strokes = handicap_strokes_on_hole(s.get("hole_stroke_index"), playing_handicap)
         gross_total += strokes
         par_played += hole_par
@@ -105,7 +104,7 @@ def calculate_live_stats(scores: list[dict], playing_handicap: int, total_holes:
         stableford_total += max(0, 2 + hcp_strokes - (strokes - hole_par))
 
     return {
-        "holes_played": len(scores),
+        "holes_played": holes_played,
         "gross_total": gross_total,
         "net_total": net_total,
         "gross_to_par": gross_total - par_played,

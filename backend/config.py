@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-production-use-a-long-random-string"
     jwt_algorithm: str = "HS256"
     jwt_expire_days: int = 30
+    allowed_origins: str = "*"
 
     class Config:
         # Project root .env as base; local .env (if present) overrides

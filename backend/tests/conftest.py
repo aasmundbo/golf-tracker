@@ -8,10 +8,16 @@ from main import app
 from auth import get_current_user
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+_SAFE_JWT_SECRET = "test-secret-that-is-at-least-32-chars-for-validation-purposes"
 
 
 @pytest.fixture
 async def client():
+    # Patch jwt_secret before the lifespan runs its security check
+    import config
+    original_jwt_secret = config.settings.jwt_secret
+    config.settings.jwt_secret = _SAFE_JWT_SECRET
+
     # StaticPool forces all connections to reuse the same underlying SQLite
     # connection, so tables created by create_all are visible to every session.
     engine = create_async_engine(
@@ -44,4 +50,5 @@ async def client():
 
     app.dependency_overrides.clear()
     database.engine = original_engine
+    config.settings.jwt_secret = original_jwt_secret
     await engine.dispose()

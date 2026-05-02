@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from config import settings
 from auth import create_access_token
+from limiter import limiter
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 _pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -19,7 +20,8 @@ class TokenResponse(BaseModel):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(data: LoginRequest):
+@limiter.limit("5/minute")
+async def login(request: Request, data: LoginRequest):
     stored_hash = settings.admin_password_hash
     if (
         not stored_hash

@@ -20,6 +20,7 @@ export default function ActiveRound() {
   const [showScorecard, setShowScorecard] = useState(false)
   const [projection, setProjection] = useState(null)
   const [showMenu, setShowMenu] = useState(false)
+  const [error, setError] = useState(null)
   const menuRef = useRef(null)
   const totalHoles = 18
 
@@ -35,46 +36,56 @@ export default function ActiveRound() {
   }, [showMenu])
 
   const loadRound = async () => {
-    const [roundRes, liveRes, projRes] = await Promise.all([
-      api.get(`/rounds/${id}`),
-      api.get(`/rounds/${id}/live`),
-      api.get(`/rounds/${id}/projected_handicap`),
-    ])
-    const roundData = roundRes.data
+    try {
+      setError(null)
+      const [roundRes, liveRes, projRes] = await Promise.all([
+        api.get(`/rounds/${id}`),
+        api.get(`/rounds/${id}/live`),
+        api.get(`/rounds/${id}/projected_handicap`),
+      ])
+      const roundData = roundRes.data
 
-    let newHoleData = {}
-    if (roundData.tee_id) {
-      try {
-        const holesRes = await api.get(`/courses/local/tees/${roundData.tee_id}/holes`)
-        holesRes.data.forEach(h => { newHoleData[h.hole_number] = h })
-      } catch {}
-    }
+      let newHoleData = {}
+      if (roundData.tee_id) {
+        try {
+          const holesRes = await api.get(`/courses/local/tees/${roundData.tee_id}/holes`)
+          holesRes.data.forEach(h => { newHoleData[h.hole_number] = h })
+        } catch {}
+      }
 
-    setRound(roundData)
-    setStats(liveRes.data)
-    setProjection(projRes.data)
-    setHoleData(newHoleData)
-    const scoreMap = {}
-    ;(roundData.scores || []).forEach(s => { scoreMap[s.hole_number] = s })
-    setScores(scoreMap)
-    for (let h = 1; h <= totalHoles; h++) {
-      if (!scoreMap[h]) { setCurrentHole(h); break }
+      setRound(roundData)
+      setStats(liveRes.data)
+      setProjection(projRes.data)
+      setHoleData(newHoleData)
+      const scoreMap = {}
+      ;(roundData.scores || []).forEach(s => { scoreMap[s.hole_number] = s })
+      setScores(scoreMap)
+      for (let h = 1; h <= totalHoles; h++) {
+        if (!scoreMap[h]) { setCurrentHole(h); break }
+      }
+    } catch (err) {
+      setError('Noe gikk galt – prøv igjen')
     }
   }
 
   const submitScore = async (holeNumber, strokes, holePar, holeStrokeIndex) => {
-    const existing = scores[holeNumber]
-    if (existing) {
-      await api.put(`/rounds/${id}/scores/${holeNumber}`, {
-        strokes, hole_par: holePar, hole_stroke_index: holeStrokeIndex,
-      })
-    } else {
-      await api.post(`/rounds/${id}/scores`, {
-        hole_number: holeNumber, strokes, hole_par: holePar, hole_stroke_index: holeStrokeIndex,
-      })
+    try {
+      setError(null)
+      const existing = scores[holeNumber]
+      if (existing) {
+        await api.put(`/rounds/${id}/scores/${holeNumber}`, {
+          strokes, hole_par: holePar, hole_stroke_index: holeStrokeIndex,
+        })
+      } else {
+        await api.post(`/rounds/${id}/scores`, {
+          hole_number: holeNumber, strokes, hole_par: holePar, hole_stroke_index: holeStrokeIndex,
+        })
+      }
+      await loadRound()
+      if (holeNumber < totalHoles) setCurrentHole(holeNumber + 1)
+    } catch (err) {
+      setError('Noe gikk galt – prøv igjen')
     }
-    await loadRound()
-    if (holeNumber < totalHoles) setCurrentHole(holeNumber + 1)
   }
 
   const finishRound = async () => {
@@ -108,6 +119,12 @@ export default function ActiveRound() {
 
   return (
     <div className="space-y-4 mt-4">
+      {error && (
+        <div className="bg-red-50 border border-red-300 text-red-700 rounded px-4 py-2 text-sm">
+          {error}
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <div>
           <h2 className="font-bold text-lg">{courseLine}</h2>

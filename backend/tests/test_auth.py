@@ -13,11 +13,15 @@ TEST_PASSWORD = "testpass123"
 TEST_PASSWORD_HASH = _pwd_ctx.hash(TEST_PASSWORD)
 
 
+_SAFE_JWT_SECRET = "test-secret-that-is-at-least-32-chars-for-validation-purposes"
+
+
 @pytest.fixture(autouse=True)
 def patch_auth_settings(monkeypatch):
     import config
     monkeypatch.setattr(config.settings, "admin_username", TEST_USERNAME)
     monkeypatch.setattr(config.settings, "admin_password_hash", TEST_PASSWORD_HASH)
+    monkeypatch.setattr(config.settings, "jwt_secret", _SAFE_JWT_SECRET)
 
 
 @pytest.fixture
