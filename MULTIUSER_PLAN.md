@@ -1,6 +1,6 @@
 # Multi-User Plan
 
-## Phase 1 — User Model & Auth Wiring
+## Phase 1 — User Model & Auth Wiring ✅ (complete, confirmed in production)
 
 ### Task 1: User model + admin seeding ✅
 - [x] Create `backend/models/user.py` with `User` and `UserRole`
@@ -15,7 +15,7 @@
 - [x] Update `conftest.py` mock to return SimpleNamespace with User fields
 - [x] Tests: `backend/tests/test_auth.py` — 5 tests, all green (62 total)
 
-## Phase 2 — Round Ownership + Course Attribution
+## Phase 2 — Round Ownership + Course Attribution ✅ (complete, confirmed in production)
 
 ### Task 3: Add nullable user_id to Round ✅
 - [x] `Round.user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)`
@@ -23,8 +23,9 @@
 - [x] Test: round created via API has `user_id=null`, no error
 
 ### Task 4: Backfill migration script ✅
-- [x] `backend/migrations/001_backfill_user_id.py` — sets all NULL round user_ids to admin
+- [x] `backend/migrations/backfill_user_id.py` — sets all NULL round user_ids to admin
 - [x] Idempotent; handles empty DB (0 rows, no crash)
+- [x] Ran in production: "Updated 0 rounds" — all existing rounds already had user_id set
 
 ### Task 5: Make user_id non-nullable + enforce ownership ✅
 - [x] `Round.user_id` → `nullable=False`
@@ -41,4 +42,4 @@
 - [x] Tests in `test_courses_api.py`
 
 ## Phase 2 Complete ✅
-71 tests passing. All tasks committed to `claude/hopeful-tesla-a01679`, cherry-picked to `main`.
+71 tests passing. All tasks committed and cherry-picked to `main`. Migration confirmed in production.
