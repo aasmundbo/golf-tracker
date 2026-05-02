@@ -5,8 +5,10 @@ from datetime import datetime, timezone
 from database import get_db
 from models.round import Round, HoleScore
 from models.course import LocalClub, LocalCourse, LocalTee, LocalHole
+from models.user import User, UserRole
 from services.handicap import calculate_playing_handicap, calculate_live_stats, calculate_projected_handicap
 from schemas.round import RoundCreate, RoundResponse
+from auth import get_current_user
 
 router = APIRouter(prefix="/api/rounds", tags=["rounds"])
 
@@ -30,8 +32,17 @@ async def _get_deduped_scores(session: AsyncSession, round_id: int) -> list[dict
     return [seen[h] for h in sorted(seen)]
 
 
+def _check_ownership(round_: Round, current_user: User) -> None:
+    if current_user.role != UserRole.admin and round_.user_id != current_user.id:
+        raise HTTPException(403, "Forbidden")
+
+
 @router.post("")
-async def start_round(data: RoundCreate, db: AsyncSession = Depends(get_db)):
+async def start_round(
+    data: RoundCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     playing_hcp = calculate_playing_handicap(
         data.hcp_index, data.slope, data.course_rating, data.par_total or 72
     )
@@ -95,6 +106,7 @@ async def start_round(data: RoundCreate, db: AsyncSession = Depends(get_db)):
         **round_data,
         playing_handicap=playing_hcp,
         status="active",
+        user_id=current_user.id,
     )
     db.add(round_)
     await db.commit()
@@ -106,28 +118,32 @@ async def list_rounds(
     skip: int = 0,
     limit: int = Query(default=50, le=200),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(
-        select(Round).order_by(Round.started_at.desc()).offset(skip).limit(limit)
-    )
+    query = select(Round).order_by(Round.started_at.desc()).offset(skip).limit(limit)
+    if current_user.role != UserRole.admin:
+        query = query.where(Round.user_id == current_user.id)
+    result = await db.execute(query)
     return result.scalars().all()
 
 # ── Literal-path routes (must come before /{round_id}) ───────────────────────
 
 @router.get("/recent-courses")
-async def get_recent_courses(db: AsyncSession = Depends(get_db)):
+async def get_recent_courses(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     # Subquery: most recent round id per distinct course_name
     subq = (
         select(func.max(Round.id).label("max_id"))
         .group_by(Round.course_name)
         .subquery()
     )
-    result = await db.execute(
-        select(Round)
-        .where(Round.id.in_(select(subq.c.max_id)))
-        .order_by(Round.started_at.desc())
-        .limit(3)
-    )
+    # Filter to current user's rounds (or all if admin)
+    base = select(Round).where(Round.id.in_(select(subq.c.max_id)))
+    if current_user.role != UserRole.admin:
+        base = base.where(Round.user_id == current_user.id)
+    result = await db.execute(base.order_by(Round.started_at.desc()).limit(3))
     return [
         {
             "club_name": r.club_name,
@@ -142,54 +158,79 @@ async def get_recent_courses(db: AsyncSession = Depends(get_db)):
     ]
 
 @router.get("/{round_id}")
-async def get_round(round_id: int, db: AsyncSession = Depends(get_db)):
+async def get_round(
+    round_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(select(Round).where(Round.id == round_id))
     round_ = result.scalar_one_or_none()
     if not round_:
         raise HTTPException(404)
+    _check_ownership(round_, current_user)
     scores = await _get_deduped_scores(db, round_id)
     response = {c.key: getattr(round_, c.key) for c in Round.__table__.columns}
     response["scores"] = scores
     return response
 
 @router.delete("/{round_id}")
-async def delete_round(round_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_round(
+    round_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(select(Round).where(Round.id == round_id))
     round_ = result.scalar_one_or_none()
     if not round_:
         raise HTTPException(404)
+    _check_ownership(round_, current_user)
     await db.delete(round_)
     await db.commit()
     return {"ok": True}
 
 @router.put("/{round_id}/finish")
-async def finish_round(round_id: int, db: AsyncSession = Depends(get_db)):
+async def finish_round(
+    round_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(select(Round).where(Round.id == round_id))
     round_ = result.scalar_one_or_none()
     if not round_:
         raise HTTPException(404)
+    _check_ownership(round_, current_user)
     round_.status = "finished"
     round_.finished_at = datetime.now(timezone.utc)
     await db.commit()
     return round_
 
 @router.get("/{round_id}/live")
-async def get_live_stats(round_id: int, db: AsyncSession = Depends(get_db)):
+async def get_live_stats(
+    round_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(select(Round).where(Round.id == round_id))
     round_ = result.scalar_one_or_none()
     if not round_:
         raise HTTPException(404)
+    _check_ownership(round_, current_user)
     scores = await _get_deduped_scores(db, round_id)
     stats = calculate_live_stats(scores, round_.playing_handicap)
     return {**stats, "playing_handicap": round_.playing_handicap, "hcp_index": round_.hcp_index}
 
 
 @router.get("/{round_id}/projected_handicap")
-async def get_projected_handicap(round_id: int, db: AsyncSession = Depends(get_db)):
+async def get_projected_handicap(
+    round_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(select(Round).where(Round.id == round_id))
     round_ = result.scalar_one_or_none()
     if not round_:
         raise HTTPException(404)
+    _check_ownership(round_, current_user)
 
     scores = await _get_deduped_scores(db, round_id)
 

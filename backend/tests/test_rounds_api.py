@@ -217,8 +217,8 @@ async def test_projected_handicap_requires_hole_data(client):
 
 # ── user_id column ────────────────────────────────────────────────────────────
 
-async def test_round_user_id_column_exists_and_nullable(client):
-    # user_id column is present; router doesn't set it yet so it's null
+async def test_round_user_id_stored_from_current_user(client):
+    # create_round sets user_id from the authenticated user (mock admin has id=1)
     data = await _create_round(client, STANDARD_ROUND)
     assert "user_id" in data
-    assert data["user_id"] is None
+    assert data["user_id"] == 1

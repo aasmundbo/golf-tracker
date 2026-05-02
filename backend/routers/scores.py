@@ -4,7 +4,9 @@ from sqlalchemy import select
 from database import get_db
 from models.round import HoleScore, Round
 from models.course import LocalHole
+from models.user import User, UserRole
 from schemas.score import ScoreCreate, ScoreUpdate
+from auth import get_current_user
 
 router = APIRouter(prefix="/api/rounds", tags=["scores"])
 
@@ -20,11 +22,18 @@ async def _upsert_local_hole(db: AsyncSession, tee_id: int, hole_number: int, pa
         db.add(LocalHole(tee_id=tee_id, hole_number=hole_number, par=par, stroke_index=stroke_index))
 
 @router.post("/{round_id}/scores")
-async def record_score(round_id: int, data: ScoreCreate, db: AsyncSession = Depends(get_db)):
+async def record_score(
+    round_id: int,
+    data: ScoreCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(select(Round).where(Round.id == round_id))
     round_ = result.scalar_one_or_none()
     if not round_:
         raise HTTPException(404, "Round not found")
+    if current_user.role != UserRole.admin and round_.user_id != current_user.id:
+        raise HTTPException(403, "Forbidden")
     existing = await db.execute(
         select(HoleScore).where(HoleScore.round_id == round_id, HoleScore.hole_number == data.hole_number)
     )

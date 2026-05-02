@@ -12,7 +12,7 @@ class Round(Base):
     __tablename__ = "rounds"
     __table_args__ = (Index("ix_round_started_at", "started_at"),)
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     course_source = Column(String)
     club_id = Column(Integer, ForeignKey("local_clubs.id"), nullable=True)
     club_name = Column(String)
