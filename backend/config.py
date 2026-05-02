@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_days: int = 30
     allowed_origins: str = "*"
+    google_client_id: str = ""
 
     class Config:
         # Project root .env as base; local .env (if present) overrides

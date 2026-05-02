@@ -43,3 +43,10 @@
 
 ## Phase 2 Complete ✅
 71 tests passing. All tasks committed and cherry-picked to `main`. Migration confirmed in production.
+
+## Phase 3 — Google OAuth + Users CRUD
+
+### Task 7: Google OAuth backend endpoint ✅
+- [x] Add `google_client_id: str = ""` to `config.Settings`
+- [x] `POST /api/auth/google` in `routers/auth.py` — accepts `{"id_token": "..."}`, verifies with `google.oauth2.id_token.verify_oauth2_token`, upserts User (google_sub → email fallback), issues JWT
+- [x] Tests: `backend/tests/test_google_auth.py` — 4 tests, all green (75 total)
