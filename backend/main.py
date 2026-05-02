@@ -6,7 +6,7 @@ from slowapi.errors import RateLimitExceeded
 from sqlalchemy import select
 import database
 from database import init_db
-from routers import courses, rounds, scores
+from routers import courses, rounds, scores, users as users_router
 from routers import auth as auth_router
 from auth import get_current_user
 from config import settings
@@ -64,6 +64,7 @@ _auth = [Depends(get_current_user)]
 app.include_router(courses.router, dependencies=_auth)
 app.include_router(rounds.router, dependencies=_auth)
 app.include_router(scores.router, dependencies=_auth)
+app.include_router(users_router.router, dependencies=_auth)
 
 @app.get("/health")
 async def health():

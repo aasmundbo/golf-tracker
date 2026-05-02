@@ -1,0 +1,90 @@
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from typing import Optional
+from auth import get_current_user
+from database import get_db
+from models.user import User, UserRole
+
+router = APIRouter(prefix="/api/users", tags=["users"])
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    name: str
+    role: UserRole
+    preferred_language: str
+    default_hcp_index: Optional[float]
+    google_sub: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
+class UserPatch(BaseModel):
+    name: Optional[str] = None
+    preferred_language: Optional[str] = None
+    default_hcp_index: Optional[float] = None
+
+
+def _require_admin(current_user=Depends(get_current_user)):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Admin required")
+    return current_user
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(current_user=Depends(get_current_user)):
+    return current_user
+
+
+@router.patch("/me", response_model=UserResponse)
+async def patch_me(
+    data: UserPatch,
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+):
+    result = await session.execute(select(User).where(User.id == current_user.id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if data.name is not None:
+        user.name = data.name
+    if data.preferred_language is not None:
+        user.preferred_language = data.preferred_language
+    if data.default_hcp_index is not None:
+        user.default_hcp_index = data.default_hcp_index
+    await session.commit()
+    await session.refresh(user)
+    return user
+
+
+@router.get("", response_model=list[UserResponse])
+async def list_users(
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Admin required")
+    result = await session.execute(select(User))
+    return result.scalars().all()
+
+
+@router.delete("/{user_id}", status_code=204)
+async def delete_user(
+    user_id: int,
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Admin required")
+    if current_user.id == user_id:
+        raise HTTPException(status_code=400, detail="Cannot delete yourself")
+    result = await session.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    await session.delete(user)
+    await session.commit()

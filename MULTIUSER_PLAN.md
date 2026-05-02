@@ -50,3 +50,12 @@
 - [x] Add `google_client_id: str = ""` to `config.Settings`
 - [x] `POST /api/auth/google` in `routers/auth.py` — accepts `{"id_token": "..."}`, verifies with `google.oauth2.id_token.verify_oauth2_token`, upserts User (google_sub → email fallback), issues JWT
 - [x] Tests: `backend/tests/test_google_auth.py` — 4 tests, all green (75 total)
+
+### Task 8: Users CRUD router ✅
+- [x] `routers/users.py` with `GET /api/users/me`, `PATCH /api/users/me` (name, preferred_language, default_hcp_index)
+- [x] Admin-only `GET /api/users` (list all), `DELETE /api/users/{id}` (with self-delete guard)
+- [x] Registered in `main.py` under `_auth` dependencies
+- [x] Tests: `backend/tests/test_users_router.py` — 10 tests, all green (85 total)
+
+## Phase 3 Complete ✅
+85 tests passing.
