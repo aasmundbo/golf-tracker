@@ -4,11 +4,13 @@ from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
 from database import get_db
 from models.course import LocalClub, LocalCourse, LocalTee, LocalHole
+from models.user import User, UserRole
 from services import course_resolver, course_api
 from schemas.course import (
     ClubCreate, ClubUpdate, LayoutCreate, LayoutUpdate,
     CourseCreate, CourseUpdate, TeeCreate, TeeUpdate, HoleUpsert, BulkHoleUpsert,
 )
+from auth import get_current_user
 
 router = APIRouter(prefix="/api/courses", tags=["courses"])
 
@@ -26,8 +28,12 @@ async def list_courses(db: AsyncSession = Depends(get_db)):
     return result.scalars().all()
 
 @router.post("")
-async def create_course(data: ClubCreate, db: AsyncSession = Depends(get_db)):
-    club = LocalClub(**data.model_dump())
+async def create_course(
+    data: ClubCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    club = LocalClub(**data.model_dump(), created_by=current_user.id)
     db.add(club)
     await db.commit()
     await db.refresh(club)
@@ -39,11 +45,17 @@ async def list_layouts(course_id: int, db: AsyncSession = Depends(get_db)):
     return result.scalars().all()
 
 @router.post("/{course_id:int}/layouts")
-async def create_layout(course_id: int, data: LayoutCreate, db: AsyncSession = Depends(get_db)):
+async def create_layout(
+    course_id: int,
+    data: LayoutCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     layout = LocalCourse(
         club_id=course_id,
         name=data.name,
         external_api_id=data.external_api_id,
+        created_by=current_user.id,
     )
     db.add(layout)
     await db.flush()
@@ -79,7 +91,11 @@ async def update_course(course_id: int, data: ClubUpdate, db: AsyncSession = Dep
     return club
 
 @router.delete("/{course_id:int}")
-async def delete_course(course_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_course(
+    course_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(
         select(LocalClub)
         .options(
@@ -92,6 +108,8 @@ async def delete_course(course_id: int, db: AsyncSession = Depends(get_db)):
     club = result.scalar_one_or_none()
     if not club:
         raise HTTPException(404, "Course not found")
+    if current_user.role != UserRole.admin and club.created_by != current_user.id:
+        raise HTTPException(403, "Forbidden")
     await db.delete(club)
     await db.commit()
     return {"ok": True}
@@ -104,8 +122,12 @@ async def list_local_layouts(db: AsyncSession = Depends(get_db)):
     return result.scalars().all()
 
 @router.post("/local")
-async def create_local_layout(data: CourseCreate, db: AsyncSession = Depends(get_db)):
-    layout = LocalCourse(**data.model_dump())
+async def create_local_layout(
+    data: CourseCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    layout = LocalCourse(**data.model_dump(), created_by=current_user.id)
     db.add(layout)
     await db.commit()
     await db.refresh(layout)
@@ -222,11 +244,17 @@ async def update_local_layout(layout_id: int, data: LayoutUpdate, db: AsyncSessi
     return layout
 
 @router.delete("/local/{layout_id:int}")
-async def delete_local_layout(layout_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_local_layout(
+    layout_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(select(LocalCourse).where(LocalCourse.id == layout_id))
     layout = result.scalar_one_or_none()
     if not layout:
         raise HTTPException(404, "Layout not found")
+    if current_user.role != UserRole.admin and layout.created_by != current_user.id:
+        raise HTTPException(403, "Forbidden")
     await db.delete(layout)
     await db.commit()
     return {"ok": True}

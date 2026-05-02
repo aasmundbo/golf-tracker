@@ -1,5 +1,27 @@
+import types
 import pytest
 from httpx import AsyncClient
+from main import app
+from auth import get_current_user
+from models.user import UserRole
+
+
+def _make_user(id_: int, role: UserRole = UserRole.user):
+    return types.SimpleNamespace(
+        id=id_,
+        email=f"user{id_}@test.com",
+        name=f"User {id_}",
+        role=role,
+        password_hash=None,
+        google_sub=None,
+        preferred_language="nb",
+        default_hcp_index=None,
+    )
+
+
+_admin = _make_user(1, UserRole.admin)
+_user2 = _make_user(2)
+_user3 = _make_user(3)
 
 
 async def _create_club(client: AsyncClient, name: str = "Test Club") -> dict:
@@ -262,3 +284,31 @@ async def test_search_returns_local_results(client):
     local = [r for r in results if r["source"] == "local"]
     assert len(local) > 0
     assert any(r["club_name"] == "Bærum GK" for r in local)
+
+
+# ── club delete ownership ─────────────────────────────────────────────────────
+
+async def test_user_can_delete_own_club(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+
+    resp = await client.delete(f"/api/courses/{club['id']}")
+    assert resp.status_code == 200
+
+
+async def test_user_cannot_delete_other_users_club(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    resp = await client.delete(f"/api/courses/{club['id']}")
+    assert resp.status_code == 403
+
+
+async def test_admin_can_delete_any_club(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _admin
+    resp = await client.delete(f"/api/courses/{club['id']}")
+    assert resp.status_code == 200

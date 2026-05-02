@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from database import Base
@@ -14,6 +14,7 @@ class LocalClub(Base):
     name = Column(String, nullable=False)
     city = Column(String)
     country = Column(String)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=_utcnow)
     updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
     courses = relationship("LocalCourse", back_populates="club", cascade="all, delete-orphan")
@@ -22,6 +23,7 @@ class LocalCourse(Base):
     __tablename__ = "local_courses"
     id = Column(Integer, primary_key=True)
     club_id = Column(Integer, ForeignKey("local_clubs.id"), nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     name = Column(String, nullable=False)
     external_api_id = Column(String)
     is_verified = Column(Boolean, default=False)
