@@ -39,3 +39,6 @@
 - [x] `create_course` / `create_layout` / `create_local_layout` set `created_by`
 - [x] `delete_course` / `delete_local_layout`: 403 if not owner and not admin
 - [x] Tests in `test_courses_api.py`
+
+## Phase 2 Complete ✅
+71 tests passing. All tasks committed to `claude/hopeful-tesla-a01679`, cherry-picked to `main`.
