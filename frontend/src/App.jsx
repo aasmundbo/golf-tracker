@@ -6,9 +6,11 @@ import ActiveRound from './pages/ActiveRound'
 import History from './pages/History'
 import MyCourses from './pages/MyCourses'
 import Settings from './pages/Settings'
+import Admin from './pages/Admin'
 import Login from './pages/Login'
 import LanguageSwitcher from './components/LanguageSwitcher'
 import PrivateRoute from './components/PrivateRoute'
+import AdminRoute from './components/AdminRoute'
 import api from './api/client'
 
 const NAV_ITEMS = [
@@ -65,7 +67,10 @@ function AppLayout() {
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="max-w-2xl mx-auto flex">
-          {NAV_ITEMS.map(({ to, icon, key, end }) => (
+          {[
+            ...NAV_ITEMS,
+            ...(currentUser?.role === 'admin' ? [{ to: '/admin', icon: '👤', key: 'nav.admin' }] : []),
+          ].map(({ to, icon, key, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -97,6 +102,9 @@ export default function App() {
           <Route path="/history" element={<History />} />
           <Route path="/courses" element={<MyCourses />} />
           <Route path="/settings" element={<Settings />} />
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<Admin />} />
+          </Route>
         </Route>
       </Route>
     </Routes>

@@ -4,7 +4,8 @@
     "newRound": "New round",
     "history": "History",
     "myCourses": "My courses",
-    "settings": "Settings"
+    "settings": "Settings",
+    "admin": "Admin"
   },
   "newRound": {
     "title": "New round",
@@ -139,6 +140,15 @@
     "saving": "Saving…",
     "saved": "Saved!",
     "error": "Save failed"
+  },
+  "admin": {
+    "title": "Admin panel",
+    "users": "Users",
+    "delete": "Delete",
+    "confirmDelete": "Delete this user?",
+    "noUsers": "No users found.",
+    "error": "Failed to load users",
+    "deleteError": "Failed to delete user"
   },
   "logout": "Log out",
   "gross": "Gross"

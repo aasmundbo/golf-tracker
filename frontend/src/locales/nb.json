@@ -4,7 +4,8 @@
     "newRound": "Ny runde",
     "history": "Historikk",
     "myCourses": "Mine baner",
-    "settings": "Innstillinger"
+    "settings": "Innstillinger",
+    "admin": "Admin"
   },
   "newRound": {
     "title": "Ny runde",
@@ -139,6 +140,15 @@
     "saving": "Lagrer…",
     "saved": "Lagret!",
     "error": "Lagring feilet"
+  },
+  "admin": {
+    "title": "Adminpanel",
+    "users": "Brukere",
+    "delete": "Slett",
+    "confirmDelete": "Slett denne brukeren?",
+    "noUsers": "Ingen brukere funnet.",
+    "error": "Klarte ikke laste brukere",
+    "deleteError": "Klarte ikke slette bruker"
   },
   "logout": "Logg ut",
   "gross": "Brutto"
