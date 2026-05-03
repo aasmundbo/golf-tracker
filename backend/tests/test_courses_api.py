@@ -312,3 +312,190 @@ async def test_admin_can_delete_any_club(client):
     app.dependency_overrides[get_current_user] = lambda: _admin
     resp = await client.delete(f"/api/courses/{club['id']}")
     assert resp.status_code == 200
+
+
+# ── club update ownership ─────────────────────────────────────────────────────
+
+async def test_user_can_update_own_club(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+
+    resp = await client.put(f"/api/courses/{club['id']}", json={"name": "Updated"})
+    assert resp.status_code == 200
+    assert resp.json()["name"] == "Updated"
+
+
+async def test_user_cannot_update_other_users_club(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    resp = await client.put(f"/api/courses/{club['id']}", json={"name": "Hijacked"})
+    assert resp.status_code == 403
+
+
+async def test_admin_can_update_any_club(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _admin
+    resp = await client.put(f"/api/courses/{club['id']}", json={"name": "Admin Updated"})
+    assert resp.status_code == 200
+
+
+# ── layout delete ownership ───────────────────────────────────────────────────
+
+async def test_user_can_delete_own_layout(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Bane"})).json()
+
+    resp = await client.delete(f"/api/courses/local/{layout['id']}")
+    assert resp.status_code == 200
+
+
+async def test_user_cannot_delete_other_users_layout(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Bane"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    resp = await client.delete(f"/api/courses/local/{layout['id']}")
+    assert resp.status_code == 403
+
+
+async def test_admin_can_delete_any_layout(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Bane"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _admin
+    resp = await client.delete(f"/api/courses/local/{layout['id']}")
+    assert resp.status_code == 200
+
+
+# ── layout update ownership ───────────────────────────────────────────────────
+
+async def test_user_can_update_own_layout(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "Club"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Bane"})).json()
+
+    resp = await client.put(f"/api/courses/local/{layout['id']}", json={"name": "Updated Bane"})
+    assert resp.status_code == 200
+    assert resp.json()["name"] == "Updated Bane"
+
+
+async def test_user_cannot_update_other_users_layout(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "Club"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Bane"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    resp = await client.put(f"/api/courses/local/{layout['id']}", json={"name": "Hijacked"})
+    assert resp.status_code == 403
+
+
+async def test_admin_can_update_any_layout(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "Club"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Bane"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _admin
+    resp = await client.put(f"/api/courses/local/{layout['id']}", json={"name": "Admin Updated"})
+    assert resp.status_code == 200
+
+
+# ── tee delete ownership ──────────────────────────────────────────────────────
+
+async def _create_club_layout_tee(client) -> tuple[dict, dict, int]:
+    club = (await client.post("/api/courses", json={"name": "Ownership Club"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={
+        "name": "Bane", "slope": 120.0, "course_rating": 68.0, "par_total": 72,
+    })).json()
+    tee_id = (await client.get(f"/api/courses/local/{layout['id']}/tees")).json()[0]["id"]
+    return club, layout, tee_id
+
+
+async def test_user_can_delete_own_tee(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    _, _, tee_id = await _create_club_layout_tee(client)
+
+    resp = await client.delete(f"/api/courses/local/tees/{tee_id}")
+    assert resp.status_code == 200
+
+
+async def test_user_cannot_delete_other_users_tee(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    _, _, tee_id = await _create_club_layout_tee(client)
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    resp = await client.delete(f"/api/courses/local/tees/{tee_id}")
+    assert resp.status_code == 403
+
+
+async def test_admin_can_delete_any_tee(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    _, _, tee_id = await _create_club_layout_tee(client)
+
+    app.dependency_overrides[get_current_user] = lambda: _admin
+    resp = await client.delete(f"/api/courses/local/tees/{tee_id}")
+    assert resp.status_code == 200
+
+
+# ── tee update ownership ──────────────────────────────────────────────────────
+
+async def test_user_can_update_own_tee(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    _, _, tee_id = await _create_club_layout_tee(client)
+
+    resp = await client.put(f"/api/courses/local/tees/{tee_id}", json={"name": "Updated"})
+    assert resp.status_code == 200
+    assert resp.json()["name"] == "Updated"
+
+
+async def test_user_cannot_update_other_users_tee(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    _, _, tee_id = await _create_club_layout_tee(client)
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    resp = await client.put(f"/api/courses/local/tees/{tee_id}", json={"name": "Hijacked"})
+    assert resp.status_code == 403
+
+
+async def test_admin_can_update_any_tee(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    _, _, tee_id = await _create_club_layout_tee(client)
+
+    app.dependency_overrides[get_current_user] = lambda: _admin
+    resp = await client.put(f"/api/courses/local/tees/{tee_id}", json={"name": "Admin Updated"})
+    assert resp.status_code == 200
+
+
+# ── nested tee update ownership (PUT /local/{layout_id}/tees/{tee_id}) ───────
+
+async def test_user_cannot_update_other_users_tee_nested(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    _, layout, tee_id = await _create_club_layout_tee(client)
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    resp = await client.put(f"/api/courses/local/{layout['id']}/tees/{tee_id}", json={"name": "Hijacked"})
+    assert resp.status_code == 403
+
+
+async def test_user_can_update_own_tee_nested(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    _, layout, tee_id = await _create_club_layout_tee(client)
+
+    resp = await client.put(f"/api/courses/local/{layout['id']}/tees/{tee_id}", json={"name": "Updated"})
+    assert resp.status_code == 200
+    assert resp.json()["name"] == "Updated"
+
+
+async def test_admin_can_update_any_tee_nested(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    _, layout, tee_id = await _create_club_layout_tee(client)
+
+    app.dependency_overrides[get_current_user] = lambda: _admin
+    resp = await client.put(f"/api/courses/local/{layout['id']}/tees/{tee_id}", json={"name": "Admin Updated"})
+    assert resp.status_code == 200
