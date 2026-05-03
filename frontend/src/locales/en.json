@@ -3,7 +3,8 @@
   "nav": {
     "newRound": "New round",
     "history": "History",
-    "myCourses": "My courses"
+    "myCourses": "My courses",
+    "settings": "Settings"
   },
   "newRound": {
     "title": "New round",
@@ -126,6 +127,16 @@
     "password": "Password",
     "submit": "Log in",
     "error": "Invalid username or password"
+  },
+  "settings": {
+    "title": "Settings",
+    "name": "Name",
+    "language": "Language",
+    "defaultHcp": "Default handicap index",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved!",
+    "error": "Save failed"
   },
   "logout": "Log out",
   "gross": "Gross"

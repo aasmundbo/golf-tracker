@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import NewRound from './pages/NewRound'
 import ActiveRound from './pages/ActiveRound'
 import History from './pages/History'
 import MyCourses from './pages/MyCourses'
+import Settings from './pages/Settings'
 import Login from './pages/Login'
 import LanguageSwitcher from './components/LanguageSwitcher'
 import PrivateRoute from './components/PrivateRoute'
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
   { to: '/', icon: '🏌️', key: 'nav.newRound', end: true },
   { to: '/history', icon: '📋', key: 'nav.history' },
   { to: '/courses', icon: '🗺️', key: 'nav.myCourses' },
+  { to: '/settings', icon: '⚙️', key: 'nav.settings' },
 ]
 
 function AppLayout() {
@@ -25,16 +27,16 @@ function AppLayout() {
     api.get('/users/me').then(res => setCurrentUser(res.data)).catch(() => {})
   }, [])
 
-  function handleLogout() {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem('token')
     setCurrentUser(null)
     navigate('/login')
-  }
+  }, [navigate])
 
   useEffect(() => {
     window.addEventListener('auth:logout', handleLogout)
     return () => window.removeEventListener('auth:logout', handleLogout)
-  })
+  }, [handleLogout])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -94,6 +96,7 @@ export default function App() {
           <Route path="/round/:id" element={<ActiveRound />} />
           <Route path="/history" element={<History />} />
           <Route path="/courses" element={<MyCourses />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
     </Routes>

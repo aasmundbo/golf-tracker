@@ -3,7 +3,8 @@
   "nav": {
     "newRound": "Ny runde",
     "history": "Historikk",
-    "myCourses": "Mine baner"
+    "myCourses": "Mine baner",
+    "settings": "Innstillinger"
   },
   "newRound": {
     "title": "Ny runde",
@@ -126,6 +127,16 @@
     "password": "Passord",
     "submit": "Logg inn",
     "error": "Ugyldig brukernavn eller passord"
+  },
+  "settings": {
+    "title": "Innstillinger",
+    "name": "Navn",
+    "language": "Språk",
+    "defaultHcp": "Standard handicapindeks",
+    "save": "Lagre",
+    "saving": "Lagrer…",
+    "saved": "Lagret!",
+    "error": "Lagring feilet"
   },
   "logout": "Logg ut",
   "gross": "Brutto"
