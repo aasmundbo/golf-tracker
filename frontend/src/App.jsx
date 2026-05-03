@@ -1,4 +1,5 @@
-import { Routes, Route, NavLink, Outlet } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Routes, Route, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import NewRound from './pages/NewRound'
 import ActiveRound from './pages/ActiveRound'
@@ -7,6 +8,7 @@ import MyCourses from './pages/MyCourses'
 import Login from './pages/Login'
 import LanguageSwitcher from './components/LanguageSwitcher'
 import PrivateRoute from './components/PrivateRoute'
+import api from './api/client'
 
 const NAV_ITEMS = [
   { to: '/', icon: '🏌️', key: 'nav.newRound', end: true },
@@ -16,16 +18,32 @@ const NAV_ITEMS = [
 
 function AppLayout() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const [currentUser, setCurrentUser] = useState(null)
+
+  useEffect(() => {
+    api.get('/users/me').then(res => setCurrentUser(res.data)).catch(() => {})
+  }, [])
 
   function handleLogout() {
     localStorage.removeItem('token')
+    setCurrentUser(null)
+    navigate('/login')
   }
+
+  useEffect(() => {
+    window.addEventListener('auth:logout', handleLogout)
+    return () => window.removeEventListener('auth:logout', handleLogout)
+  })
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="fixed top-0 left-0 right-0 z-40 bg-green-700 text-white flex items-center justify-between px-4 py-3">
         <span className="font-bold text-lg">{t('brand')}</span>
         <div className="flex items-center gap-3">
+          {currentUser?.name && (
+            <span className="text-sm text-white/90">{currentUser.name}</span>
+          )}
           <LanguageSwitcher />
           <button
             onClick={handleLogout}
