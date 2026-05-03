@@ -82,10 +82,33 @@
 - [ ] `handleLogout`: clear token, clear `currentUser`, use `useNavigate` to push `/login`
 - [ ] Listen for the existing `auth:logout` event from `api/client.js` (on 401) to also clear `currentUser` and navigate to `/login`
 
-### Task 12: Settings page ⬜
-- [ ] Create `frontend/src/pages/Settings.jsx`: form with name (text), preferred_language (nb/en `<select>`), default_hcp_index (number input)
-- [ ] On mount, fetch `GET /api/users/me` to pre-populate fields
-- [ ] On save, `PATCH /api/users/me` with changed fields; when preferred_language changes, also call `i18n.changeLanguage(lang)`
-- [ ] Add `/settings` route in `App.jsx`
-- [ ] Add settings nav item to the bottom nav (⚙️ icon)
-- [ ] Add i18n strings `settings.*` to `en.json` and `nb.json`
+### Task 12: Settings page ✅
+- [x] Create `frontend/src/pages/Settings.jsx`: form with name (text), preferred_language (nb/en `<select>`), default_hcp_index (number input)
+- [x] On mount, fetch `GET /api/users/me` to pre-populate fields
+- [x] On save, `PATCH /api/users/me` with changed fields; when preferred_language changes, also call `i18n.changeLanguage(lang)`
+- [x] Add `/settings` route in `App.jsx`
+- [x] Add settings nav item to the bottom nav (⚙️ icon)
+- [x] Add i18n strings `settings.*` to `en.json` and `nb.json`
+
+## Phase 4 Complete ✅
+85 tests passing. All tasks committed and cherry-picked to `main`.
+
+## Phase 5 — Google OAuth Frontend + Admin Panel
+
+### Task 13: Google Sign-In button on login page ✅
+- [x] Load GSI script in `index.html`
+- [x] Render Google button in `Login.jsx` when `VITE_GOOGLE_CLIENT_ID` env var is set
+- [x] Call `POST /api/auth/google` with id_token on credential response, save JWT, navigate to `/`
+- [x] useEffect cleanup with cancellation flag; correct deps `[t, navigate]`
+- [x] i18n keys `login.orSignInWith`, `login.googleError` added to both locale files
+
+### Task 14: Admin panel ✅
+- [x] `frontend/src/pages/Admin.jsx`: fetch `GET /api/users`, list users with name/email/role, delete button with confirm dialog calling `DELETE /api/users/{id}`
+- [x] Loading + error states
+- [x] `frontend/src/components/AdminRoute.jsx`: fetches `GET /api/users/me` to verify admin role; non-admins redirect to `/`
+- [x] `/admin` route in `App.jsx` nested under `PrivateRoute > AppLayout > AdminRoute`
+- [x] Admin nav item in bottom nav (only visible when `currentUser?.role === 'admin'`)
+- [x] i18n keys `nav.admin`, `admin.*` added to both locale files
+
+## Phase 5 Complete ✅
+85 tests passing. All tasks committed and cherry-picked to `main`.
