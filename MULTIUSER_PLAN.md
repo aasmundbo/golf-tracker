@@ -59,3 +59,33 @@
 
 ## Phase 3 Complete ✅
 85 tests passing.
+
+## Phase 4 — Frontend Auth Layer
+
+### Task 9: Protect all frontend routes ✅
+- [ ] Replace conditional-render auth gate in `App.jsx` with React Router URL-based routing
+- [ ] Add `/login` route pointing to `<Login />`
+- [ ] Create `PrivateRoute` component: reads token from localStorage, decodes JWT payload (base64, no library), checks `exp > Date.now()/1000`; if invalid/expired, clears token and redirects to `/login`
+- [ ] Wrap all protected routes (`/`, `/round/:id`, `/history`, `/courses`, `/settings`) with `PrivateRoute`
+- [ ] Remove the old `isAuthenticated` state / conditional render approach from App.jsx
+
+### Task 10: Login page polish ⬜
+- [ ] Change `Login.jsx` field label from "Username" to "Email"; change input type to `email`; rename state var `username` → `email`
+- [ ] Post `{ username: email, password }` to `/api/auth/login` (backend expects `username` field)
+- [ ] On success: save JWT, call `onLogin()`, navigate to `/` using `useNavigate`
+- [ ] On failure: show error message (already exists, keep it)
+- [ ] Add `login.email` key to `en.json` ("Email") and `nb.json` ("E-post"); remove `login.username`
+
+### Task 11: Show current user in header ⬜
+- [ ] In `App.jsx`, after mounting (or after login), fetch `GET /api/users/me` and store `currentUser` state
+- [ ] Display `currentUser.name` in the header next to the logout button
+- [ ] `handleLogout`: clear token, clear `currentUser`, use `useNavigate` to push `/login`
+- [ ] Listen for the existing `auth:logout` event from `api/client.js` (on 401) to also clear `currentUser` and navigate to `/login`
+
+### Task 12: Settings page ⬜
+- [ ] Create `frontend/src/pages/Settings.jsx`: form with name (text), preferred_language (nb/en `<select>`), default_hcp_index (number input)
+- [ ] On mount, fetch `GET /api/users/me` to pre-populate fields
+- [ ] On save, `PATCH /api/users/me` with changed fields; when preferred_language changes, also call `i18n.changeLanguage(lang)`
+- [ ] Add `/settings` route in `App.jsx`
+- [ ] Add settings nav item to the bottom nav (⚙️ icon)
+- [ ] Add i18n strings `settings.*` to `en.json` and `nb.json`

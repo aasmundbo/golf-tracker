@@ -69,7 +69,7 @@ function AppLayout() {
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login onLogin={() => {}} />} />
+      <Route path="/login" element={<Login />} />
       <Route element={<PrivateRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<NewRound />} />

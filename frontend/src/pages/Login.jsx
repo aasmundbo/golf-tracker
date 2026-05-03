@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import axios from 'axios'
 
-export default function Login({ onLogin }) {
+export default function Login() {
+  const navigate = useNavigate()
   const { t } = useTranslation()
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -14,9 +16,9 @@ export default function Login({ onLogin }) {
     setLoading(true)
     setError('')
     try {
-      const { data } = await axios.post('/api/auth/login', { username, password })
+      const { data } = await axios.post('/api/auth/login', { username: email, password })
       localStorage.setItem('token', data.access_token)
-      onLogin()
+      navigate('/')
     } catch {
       setError(t('login.error'))
     } finally {
@@ -32,14 +34,14 @@ export default function Login({ onLogin }) {
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('login.username')}
+              {t('login.email')}
             </label>
             <input
-              type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
-              autoComplete="username"
+              autoComplete="email"
               required
             />
           </div>
