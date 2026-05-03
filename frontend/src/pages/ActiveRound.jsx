@@ -21,10 +21,14 @@ export default function ActiveRound() {
   const [projection, setProjection] = useState(null)
   const [showMenu, setShowMenu] = useState(false)
   const [error, setError] = useState(null)
+  const [scoreDisplay, setScoreDisplay] = useState('netto')
   const menuRef = useRef(null)
   const totalHoles = 18
 
-  useEffect(() => { loadRound() }, [id])
+  useEffect(() => {
+    loadRound()
+    api.get('/users/me').then(res => setScoreDisplay(res.data.score_display ?? 'netto')).catch(() => {})
+  }, [id])
 
   useEffect(() => {
     if (!showMenu) return
@@ -149,6 +153,7 @@ export default function ActiveRound() {
           projection={projection}
           hcpIndex={round.hcp_index}
           playingHandicap={round.playing_handicap}
+          scoreDisplay={scoreDisplay}
         />
       )}
 
@@ -196,6 +201,7 @@ export default function ActiveRound() {
                   par={s.hole_par}
                   si={s.hole_stroke_index}
                   playingHcp={round.playing_handicap}
+                  scoreDisplay={scoreDisplay}
                 />
               ) : h}
             </button>

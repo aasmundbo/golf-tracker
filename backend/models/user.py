@@ -19,5 +19,6 @@ class User(Base):
     password_hash = Column(String, nullable=True)
     role = Column(SAEnum(UserRole), nullable=False, default=UserRole.user)
     preferred_language = Column(String, nullable=False, default="nb")
+    score_display = Column(String, nullable=False, default="netto")
     default_hcp_index = Column(Float, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

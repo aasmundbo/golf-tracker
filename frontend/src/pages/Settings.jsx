@@ -11,6 +11,7 @@ export default function Settings() {
   const [name, setName] = useState('')
   const [lang, setLang] = useState('nb')
   const [hcp, setHcp] = useState('')
+  const [scoreDisplay, setScoreDisplay] = useState('netto')
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -26,6 +27,7 @@ export default function Settings() {
         setName(user.name ?? '')
         setLang(user.preferred_language ?? 'nb')
         setHcp(user.default_hcp_index != null ? String(user.default_hcp_index) : '')
+        setScoreDisplay(user.score_display ?? 'netto')
       })
       .catch(() => setError(t('settings.error')))
       .finally(() => setLoading(false))
@@ -38,6 +40,7 @@ export default function Settings() {
     const patch = {}
     if (name !== original.name) patch.name = name
     if (lang !== original.preferred_language) patch.preferred_language = lang
+    if (scoreDisplay !== original.score_display) patch.score_display = scoreDisplay
     const hcpVal = hcp === '' ? null : parseFloat(hcp)
     if (hcpVal !== original.default_hcp_index) patch.default_hcp_index = hcpVal
     if (Object.keys(patch).length === 0) return
@@ -53,6 +56,7 @@ export default function Settings() {
       setName(updated.name ?? '')
       setLang(updated.preferred_language ?? 'nb')
       setHcp(updated.default_hcp_index != null ? String(updated.default_hcp_index) : '')
+      setScoreDisplay(updated.score_display ?? 'netto')
 
       if (patch.preferred_language) {
         i18n.changeLanguage(patch.preferred_language)
@@ -114,6 +118,20 @@ export default function Settings() {
           >
             <option value="nb">Norsk</option>
             <option value="en">English</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('settings.scoreDisplay')}
+          </label>
+          <select
+            value={scoreDisplay}
+            onChange={e => setScoreDisplay(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+          >
+            <option value="netto">{t('settings.scoreDisplayNetto')}</option>
+            <option value="brutto">{t('settings.scoreDisplayBrutto')}</option>
           </select>
         </div>
 

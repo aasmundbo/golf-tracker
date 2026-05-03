@@ -7,7 +7,7 @@ export function getHandicapStrokes(playingHcp, si) {
   return base + (si <= remainder ? 1 : 0)
 }
 
-export function ScoreIndicator({ gross, par, si, playingHcp }) {
+export function ScoreIndicator({ gross, par, si, playingHcp, scoreDisplay = 'netto' }) {
   if (gross == null || par == null) {
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28 }}>
@@ -16,8 +16,9 @@ export function ScoreIndicator({ gross, par, si, playingHcp }) {
     )
   }
 
-  const net = gross - getHandicapStrokes(playingHcp, si)
-  const netToPar = net - par
+  const netToPar = scoreDisplay === 'brutto'
+    ? gross - par
+    : (gross - getHandicapStrokes(playingHcp, si)) - par
 
   const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, boxSizing: 'border-box' }
 
@@ -95,7 +96,7 @@ function Sparkline({ holeByHole, hcpIndex }) {
   )
 }
 
-export default function Scorecard({ scores, totalHoles, projection, hcpIndex, playingHandicap }) {
+export default function Scorecard({ scores, totalHoles, projection, hcpIndex, playingHandicap, scoreDisplay = 'netto' }) {
   const { t } = useTranslation()
 
   return (
@@ -120,7 +121,7 @@ export default function Scorecard({ scores, totalHoles, projection, hcpIndex, pl
                   <td className="border px-2 py-1 text-center">{s?.hole_stroke_index ?? '-'}</td>
                   <td className="border px-2 py-1 text-center font-medium">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <ScoreIndicator gross={s?.strokes} par={s?.hole_par} si={s?.hole_stroke_index} playingHcp={playingHandicap} />
+                      <ScoreIndicator gross={s?.strokes} par={s?.hole_par} si={s?.hole_stroke_index} playingHcp={playingHandicap} scoreDisplay={scoreDisplay} />
                     </div>
                   </td>
                 </tr>

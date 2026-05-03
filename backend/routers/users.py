@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
-from typing import Optional
+from typing import Literal, Optional
 from auth import get_current_user
 from database import get_db
 from models.user import User, UserRole
@@ -18,6 +18,7 @@ class UserResponse(BaseModel):
     name: str
     role: UserRole
     preferred_language: str
+    score_display: str
     default_hcp_index: Optional[float]
     google_sub: Optional[str]
 
@@ -29,6 +30,7 @@ class UserPatch(BaseModel):
     name: Optional[str] = None
     preferred_language: Optional[str] = None
     default_hcp_index: Optional[float] = None
+    score_display: Optional[Literal["netto", "brutto"]] = None
 
 
 def _require_admin(current_user=Depends(get_current_user)):
@@ -56,6 +58,8 @@ async def patch_me(
         user.name = data.name
     if data.preferred_language is not None:
         user.preferred_language = data.preferred_language
+    if data.score_display is not None:
+        user.score_display = data.score_display
     if data.default_hcp_index is not None:
         user.default_hcp_index = data.default_hcp_index
     await session.commit()

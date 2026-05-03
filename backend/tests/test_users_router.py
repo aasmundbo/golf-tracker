@@ -17,7 +17,8 @@ _SAFE_JWT_SECRET = "test-secret-that-is-at-least-32-chars-for-validation-purpose
 
 def _make_user_ns(**kwargs):
     defaults = dict(id=1, email="user@test.com", name="User", role=UserRole.user,
-                    password_hash=None, google_sub=None, preferred_language="nb", default_hcp_index=None)
+                    password_hash=None, google_sub=None, preferred_language="nb",
+                    score_display="netto", default_hcp_index=None)
     defaults.update(kwargs)
     return types.SimpleNamespace(**defaults)
 
@@ -262,6 +263,50 @@ async def test_delete_me_nullifies_created_by_on_clubs_and_courses(users_client)
         course_result = await s.execute(select(LocalCourse).where(LocalCourse.id == 200))
         course = course_result.scalar_one()
         assert course.created_by is None
+
+
+# ── score_display field ────────────────────────────────────────────────────────
+
+async def test_get_me_returns_score_display_default_netto(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        user = User(id=90, email="display@test.com", name="Display", role=UserRole.user)
+        s.add(user)
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_user_ns(id=90, email="display@test.com", name="Display")
+
+    resp = await client.get("/api/users/me")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["score_display"] == "netto"
+
+
+async def test_patch_me_updates_score_display(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        user = User(id=91, email="displaypatch@test.com", name="Display Patch", role=UserRole.user)
+        s.add(user)
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_user_ns(id=91, email="displaypatch@test.com", name="Display Patch")
+
+    resp = await client.patch("/api/users/me", json={"score_display": "brutto"})
+    assert resp.status_code == 200
+    assert resp.json()["score_display"] == "brutto"
+
+
+async def test_patch_me_rejects_invalid_score_display(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        user = User(id=92, email="displayinvalid@test.com", name="Display Invalid", role=UserRole.user)
+        s.add(user)
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_user_ns(id=92, email="displayinvalid@test.com", name="Display Invalid")
+
+    resp = await client.patch("/api/users/me", json={"score_display": "invalid"})
+    assert resp.status_code == 422
 
 
 async def test_delete_me_deletes_rounds(users_client):
