@@ -264,7 +264,7 @@ async def test_delete_me_nullifies_created_by_on_clubs_and_courses(users_client)
         assert course.created_by is None
 
 
-async def test_delete_me_preserves_rounds(users_client):
+async def test_delete_me_deletes_rounds(users_client):
     client, SessionLocal = users_client
     async with SessionLocal() as s:
         user = User(id=80, email="roundowner@test.com", name="Round Owner", role=UserRole.user)
@@ -283,6 +283,4 @@ async def test_delete_me_preserves_rounds(users_client):
 
     async with SessionLocal() as s:
         result = await s.execute(select(Round).where(Round.id == 300))
-        preserved_round = result.scalar_one()
-        assert preserved_round is not None
-        assert preserved_round.user_id is None
+        assert result.scalar_one_or_none() is None

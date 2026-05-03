@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 from typing import Optional
 from auth import get_current_user
 from database import get_db
@@ -82,7 +82,7 @@ async def delete_me(
     if current_user.role == UserRole.admin:
         raise HTTPException(status_code=400, detail="Admin accounts cannot be self-deleted")
     await session.execute(
-        update(Round).where(Round.user_id == current_user.id).values(user_id=None)
+        delete(Round).where(Round.user_id == current_user.id)
     )
     await session.execute(
         update(LocalClub).where(LocalClub.created_by == current_user.id).values(created_by=None)
