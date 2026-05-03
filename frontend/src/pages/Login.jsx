@@ -16,22 +16,26 @@ export default function Login() {
 
   useEffect(() => {
     if (!googleClientId) return
+    let cancelled = false
 
     function initGoogle() {
-      if (!window.google) return
+      if (!window.google || cancelled) return
       window.google.accounts.id.initialize({
         client_id: googleClientId,
         callback: async (response) => {
+          if (cancelled) return
           setLoading(true)
           setError('')
           try {
             const { data } = await axios.post('/api/auth/google', { id_token: response.credential })
-            localStorage.setItem('token', data.access_token)
-            navigate('/')
+            if (!cancelled) {
+              localStorage.setItem('token', data.access_token)
+              navigate('/')
+            }
           } catch {
-            setError(t('login.googleError'))
+            if (!cancelled) setError(t('login.googleError'))
           } finally {
-            setLoading(false)
+            if (!cancelled) setLoading(false)
           }
         },
       })
@@ -50,10 +54,15 @@ export default function Login() {
       const script = document.querySelector('script[src*="accounts.google.com/gsi/client"]')
       if (script) {
         script.addEventListener('load', initGoogle)
-        return () => script.removeEventListener('load', initGoogle)
+        return () => {
+          cancelled = true
+          script.removeEventListener('load', initGoogle)
+        }
       }
     }
-  }, [googleClientId])
+
+    return () => { cancelled = true }
+  }, [t, navigate])
 
   async function handleSubmit(e) {
     e.preventDefault()
