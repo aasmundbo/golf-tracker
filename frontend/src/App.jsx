@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { Routes, Route, NavLink } from 'react-router-dom'
+import { Routes, Route, NavLink, Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import NewRound from './pages/NewRound'
 import ActiveRound from './pages/ActiveRound'
@@ -7,6 +6,7 @@ import History from './pages/History'
 import MyCourses from './pages/MyCourses'
 import Login from './pages/Login'
 import LanguageSwitcher from './components/LanguageSwitcher'
+import PrivateRoute from './components/PrivateRoute'
 
 const NAV_ITEMS = [
   { to: '/', icon: '🏌️', key: 'nav.newRound', end: true },
@@ -14,23 +14,11 @@ const NAV_ITEMS = [
   { to: '/courses', icon: '🗺️', key: 'nav.myCourses' },
 ]
 
-export default function App() {
+function AppLayout() {
   const { t } = useTranslation()
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'))
-
-  useEffect(() => {
-    const handleLogout = () => setIsAuthenticated(false)
-    window.addEventListener('auth:logout', handleLogout)
-    return () => window.removeEventListener('auth:logout', handleLogout)
-  }, [])
 
   function handleLogout() {
     localStorage.removeItem('token')
-    setIsAuthenticated(false)
-  }
-
-  if (!isAuthenticated) {
-    return <Login onLogin={() => setIsAuthenticated(true)} />
   }
 
   return (
@@ -49,12 +37,7 @@ export default function App() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 pt-14 pb-20">
-        <Routes>
-          <Route path="/" element={<NewRound />} />
-          <Route path="/round/:id" element={<ActiveRound />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/courses" element={<MyCourses />} />
-        </Routes>
+        <Outlet />
       </main>
 
       <nav
@@ -80,5 +63,21 @@ export default function App() {
         </div>
       </nav>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login onLogin={() => {}} />} />
+      <Route element={<PrivateRoute />}>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<NewRound />} />
+          <Route path="/round/:id" element={<ActiveRound />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/courses" element={<MyCourses />} />
+        </Route>
+      </Route>
+    </Routes>
   )
 }
