@@ -126,7 +126,9 @@
     "email": "Email",
     "password": "Password",
     "submit": "Log in",
-    "error": "Invalid username or password"
+    "error": "Invalid username or password",
+    "or": "or",
+    "googleError": "Google sign-in failed"
   },
   "settings": {
     "title": "Settings",

@@ -126,7 +126,9 @@
     "email": "E-post",
     "password": "Passord",
     "submit": "Logg inn",
-    "error": "Ugyldig brukernavn eller passord"
+    "error": "Ugyldig brukernavn eller passord",
+    "or": "eller",
+    "googleError": "Google-innlogging feilet"
   },
   "settings": {
     "title": "Innstillinger",

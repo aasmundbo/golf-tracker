@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import axios from 'axios'
+
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
 
 export default function Login() {
   const navigate = useNavigate()
@@ -10,6 +12,48 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const googleBtnRef = useRef(null)
+
+  useEffect(() => {
+    if (!googleClientId) return
+
+    function initGoogle() {
+      if (!window.google) return
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async (response) => {
+          setLoading(true)
+          setError('')
+          try {
+            const { data } = await axios.post('/api/auth/google', { id_token: response.credential })
+            localStorage.setItem('token', data.access_token)
+            navigate('/')
+          } catch {
+            setError(t('login.googleError'))
+          } finally {
+            setLoading(false)
+          }
+        },
+      })
+      if (googleBtnRef.current) {
+        window.google.accounts.id.renderButton(googleBtnRef.current, {
+          theme: 'outline',
+          size: 'large',
+          width: googleBtnRef.current.offsetWidth || 300,
+        })
+      }
+    }
+
+    if (window.google) {
+      initGoogle()
+    } else {
+      const script = document.querySelector('script[src*="accounts.google.com/gsi/client"]')
+      if (script) {
+        script.addEventListener('load', initGoogle)
+        return () => script.removeEventListener('load', initGoogle)
+      }
+    }
+  }, [googleClientId])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -65,6 +109,19 @@ export default function Login() {
           >
             {loading ? '…' : t('login.submit')}
           </button>
+          {googleClientId && (
+            <>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-400">{t('login.or')}</span>
+                </div>
+              </div>
+              <div ref={googleBtnRef} className="w-full" />
+            </>
+          )}
         </form>
       </div>
     </div>
