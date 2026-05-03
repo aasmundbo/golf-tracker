@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import api from '../api/client'
 
 export default function Settings() {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
 
   const [original, setOriginal] = useState(null)
   const [name, setName] = useState('')
@@ -14,6 +16,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     api.get('/users/me')
@@ -61,6 +64,18 @@ export default function Settings() {
       setError(t('settings.error'))
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm(t('settings.confirmDeleteAccount'))) return
+    setDeleteError('')
+    try {
+      await api.delete('/users/me')
+      localStorage.removeItem('token')
+      navigate('/login')
+    } catch {
+      setDeleteError(t('settings.deleteAccountError'))
     }
   }
 
@@ -132,6 +147,20 @@ export default function Settings() {
           {saving ? t('settings.saving') : t('settings.save')}
         </button>
       </form>
+
+      <div className="border border-red-200 rounded-xl p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-red-700">{t('settings.deleteAccount')}</h3>
+        {deleteError && (
+          <p className="text-sm text-red-600">{deleteError}</p>
+        )}
+        <button
+          type="button"
+          onClick={handleDeleteAccount}
+          className="w-full border border-red-500 text-red-600 font-semibold rounded-xl py-2.5 text-sm hover:bg-red-50 transition-colors"
+        >
+          {t('settings.deleteAccount')}
+        </button>
+      </div>
     </div>
   )
 }

@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
 from typing import Optional
 from auth import get_current_user
 from database import get_db
 from models.user import User, UserRole
+from models.course import LocalClub, LocalCourse
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -70,6 +71,26 @@ async def list_users(
         raise HTTPException(status_code=403, detail="Admin required")
     result = await session.execute(select(User))
     return result.scalars().all()
+
+
+@router.delete("/me", status_code=204)
+async def delete_me(
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+):
+    if current_user.role == UserRole.admin:
+        raise HTTPException(status_code=400, detail="Admin accounts cannot be self-deleted")
+    await session.execute(
+        update(LocalClub).where(LocalClub.created_by == current_user.id).values(created_by=None)
+    )
+    await session.execute(
+        update(LocalCourse).where(LocalCourse.created_by == current_user.id).values(created_by=None)
+    )
+    result = await session.execute(select(User).where(User.id == current_user.id))
+    user = result.scalar_one_or_none()
+    if user is not None:
+        await session.delete(user)
+    await session.commit()
 
 
 @router.delete("/{user_id}", status_code=204)

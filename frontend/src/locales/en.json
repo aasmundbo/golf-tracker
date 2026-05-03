@@ -139,7 +139,10 @@
     "save": "Save",
     "saving": "Saving…",
     "saved": "Saved!",
-    "error": "Save failed"
+    "error": "Save failed",
+    "deleteAccount": "Delete account",
+    "confirmDeleteAccount": "Are you sure you want to delete your account? This cannot be undone.",
+    "deleteAccountError": "Failed to delete account"
   },
   "admin": {
     "title": "Admin panel",

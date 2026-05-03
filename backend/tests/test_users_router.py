@@ -9,6 +9,7 @@ from database import Base, get_db
 from main import app
 from auth import get_current_user, create_access_token
 from models.user import User, UserRole
+from models.course import LocalClub, LocalCourse
 
 _SAFE_JWT_SECRET = "test-secret-that-is-at-least-32-chars-for-validation-purposes"
 
@@ -201,3 +202,62 @@ async def test_delete_nonexistent_user_returns_404(users_client):
 
     resp = await client.delete("/api/users/9999")
     assert resp.status_code == 404
+
+
+# ── DELETE /users/me (self-delete) ─────────────────────────────────────────────
+
+async def test_user_can_delete_own_account(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        user = User(id=50, email="selfdelete@test.com", name="Self Delete", role=UserRole.user)
+        s.add(user)
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_user_ns(id=50)
+
+    resp = await client.delete("/api/users/me")
+    assert resp.status_code == 204
+
+    async with SessionLocal() as s:
+        result = await s.execute(select(User).where(User.id == 50))
+        assert result.scalar_one_or_none() is None
+
+
+async def test_admin_cannot_delete_own_account_via_me(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        admin = User(id=60, email="admindelete@test.com", name="Admin Delete", role=UserRole.admin)
+        s.add(admin)
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_admin_ns(id=60)
+
+    resp = await client.delete("/api/users/me")
+    assert resp.status_code == 400
+
+
+async def test_delete_me_nullifies_created_by_on_clubs_and_courses(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        user = User(id=70, email="owner@test.com", name="Owner", role=UserRole.user)
+        s.add(user)
+        await s.flush()
+        club = LocalClub(id=100, name="Owner's Club", created_by=70)
+        course = LocalCourse(id=200, name="Owner's Course", created_by=70)
+        s.add(club)
+        s.add(course)
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_user_ns(id=70)
+
+    resp = await client.delete("/api/users/me")
+    assert resp.status_code == 204
+
+    async with SessionLocal() as s:
+        club_result = await s.execute(select(LocalClub).where(LocalClub.id == 100))
+        club = club_result.scalar_one()
+        assert club.created_by is None
+
+        course_result = await s.execute(select(LocalCourse).where(LocalCourse.id == 200))
+        course = course_result.scalar_one()
+        assert course.created_by is None

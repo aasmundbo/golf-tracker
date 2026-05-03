@@ -139,7 +139,10 @@
     "save": "Lagre",
     "saving": "Lagrer…",
     "saved": "Lagret!",
-    "error": "Lagring feilet"
+    "error": "Lagring feilet",
+    "deleteAccount": "Slett konto",
+    "confirmDeleteAccount": "Er du sikker på at du vil slette kontoen din? Dette kan ikke angres.",
+    "deleteAccountError": "Klarte ikke slette konto"
   },
   "admin": {
     "title": "Adminpanel",
