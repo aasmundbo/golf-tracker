@@ -7,6 +7,7 @@ from auth import get_current_user
 from database import get_db
 from models.user import User, UserRole
 from models.course import LocalClub, LocalCourse
+from models.round import Round
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -80,6 +81,9 @@ async def delete_me(
 ):
     if current_user.role == UserRole.admin:
         raise HTTPException(status_code=400, detail="Admin accounts cannot be self-deleted")
+    await session.execute(
+        update(Round).where(Round.user_id == current_user.id).values(user_id=None)
+    )
     await session.execute(
         update(LocalClub).where(LocalClub.created_by == current_user.id).values(created_by=None)
     )

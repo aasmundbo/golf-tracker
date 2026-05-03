@@ -10,6 +10,7 @@ from main import app
 from auth import get_current_user, create_access_token
 from models.user import User, UserRole
 from models.course import LocalClub, LocalCourse
+from models.round import Round
 
 _SAFE_JWT_SECRET = "test-secret-that-is-at-least-32-chars-for-validation-purposes"
 
@@ -261,3 +262,27 @@ async def test_delete_me_nullifies_created_by_on_clubs_and_courses(users_client)
         course_result = await s.execute(select(LocalCourse).where(LocalCourse.id == 200))
         course = course_result.scalar_one()
         assert course.created_by is None
+
+
+async def test_delete_me_preserves_rounds(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        user = User(id=80, email="roundowner@test.com", name="Round Owner", role=UserRole.user)
+        s.add(user)
+        await s.flush()
+        round_ = Round(id=300, user_id=80, course_source="local", club_name="Club", course_name="Course",
+                       tee_name="Tee", slope=113.0, course_rating=72.0, par_total=72, hcp_index=10.0,
+                       playing_handicap=10, status="finished")
+        s.add(round_)
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_user_ns(id=80)
+
+    resp = await client.delete("/api/users/me")
+    assert resp.status_code == 204
+
+    async with SessionLocal() as s:
+        result = await s.execute(select(Round).where(Round.id == 300))
+        preserved_round = result.scalar_one()
+        assert preserved_round is not None
+        assert preserved_round.user_id is None
