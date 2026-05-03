@@ -11,6 +11,7 @@ const emptyHoles = () => Array.from({ length: 18 }, (_, i) => emptyHoleRow(i + 1
 
 export default function MyCourses() {
   const { t } = useTranslation()
+  const [currentUser, setCurrentUser] = useState(null)
   const [courses, setCourses] = useState([])
   const [expandedCourse, setExpandedCourse] = useState(null)
   const [layouts, setLayouts] = useState({})
@@ -49,6 +50,13 @@ export default function MyCourses() {
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [openTeeMenu])
+
+  useEffect(() => {
+    api.get('/users/me').then(r => setCurrentUser(r.data)).catch(() => {})
+  }, [])
+
+  const canDelete = (createdBy) =>
+    currentUser?.role === 'admin' || createdBy === currentUser?.id
 
   const loadCourses = () =>
     api.get('/courses').then(r => setCourses(r.data)).catch(() => {})
@@ -359,12 +367,14 @@ export default function MyCourses() {
               {course.city && <span className="text-sm text-gray-500 ml-2">{course.city}</span>}
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={e => { e.stopPropagation(); deleteCourse(course.id) }}
-                className="text-red-500 text-sm"
-              >
-                {t('myCourses.delete')}
-              </button>
+              {canDelete(course.created_by) && (
+                <button
+                  onClick={e => { e.stopPropagation(); deleteCourse(course.id) }}
+                  className="text-red-500 text-sm"
+                >
+                  {t('myCourses.delete')}
+                </button>
+              )}
               <span className="text-gray-400 text-sm select-none">
                 {expandedCourse === course.id ? '▲' : '▼'}
               </span>
@@ -381,12 +391,14 @@ export default function MyCourses() {
                   >
                     <span className="font-medium text-sm">{layout.name}</span>
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={e => { e.stopPropagation(); deleteLayout(course.id, layout.id) }}
-                        className="text-red-500 text-xs"
-                      >
-                        {t('myCourses.delete')}
-                      </button>
+                      {canDelete(layout.created_by) && (
+                        <button
+                          onClick={e => { e.stopPropagation(); deleteLayout(course.id, layout.id) }}
+                          className="text-red-500 text-xs"
+                        >
+                          {t('myCourses.delete')}
+                        </button>
+                      )}
                       <span className="text-gray-400 text-xs select-none">
                         {expandedLayout === layout.id ? '▲' : '▼'}
                       </span>
@@ -431,12 +443,14 @@ export default function MyCourses() {
                                     >
                                       {t('myCourses.duplicateTee')}
                                     </button>
-                                    <button
-                                      onClick={() => { setOpenTeeMenu(null); deleteTee(layout.id, tee.id) }}
-                                      className="w-full text-left px-3 py-1.5 text-xs text-red-500 hover:bg-red-50"
-                                    >
-                                      {t('myCourses.delete')}
-                                    </button>
+                                    {canDelete(layout.created_by) && (
+                                      <button
+                                        onClick={() => { setOpenTeeMenu(null); deleteTee(layout.id, tee.id) }}
+                                        className="w-full text-left px-3 py-1.5 text-xs text-red-500 hover:bg-red-50"
+                                      >
+                                        {t('myCourses.delete')}
+                                      </button>
+                                    )}
                                   </div>
                                 )}
                               </div>
