@@ -343,6 +343,28 @@ async def test_admin_can_update_any_club(client):
     assert resp.status_code == 200
 
 
+async def test_update_club_city_and_country(client):
+    club = (await client.post("/api/courses", json={"name": "Oslo GK"})).json()
+
+    resp = await client.put(f"/api/courses/{club['id']}", json={"city": "Oslo", "country": "Norway"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["city"] == "Oslo"
+    assert data["country"] == "Norway"
+    assert data["name"] == "Oslo GK"
+
+
+async def test_update_club_city_only(client):
+    club = (await client.post("/api/courses", json={"name": "Bergen GK", "city": "Stavanger", "country": "Norway"})).json()
+
+    resp = await client.put(f"/api/courses/{club['id']}", json={"city": "Bergen"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["city"] == "Bergen"
+    assert data["country"] == "Norway"
+    assert data["name"] == "Bergen GK"
+
+
 # ── layout delete ownership ───────────────────────────────────────────────────
 
 async def test_user_can_delete_own_layout(client):

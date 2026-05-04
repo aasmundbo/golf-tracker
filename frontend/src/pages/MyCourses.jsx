@@ -28,6 +28,12 @@ export default function MyCourses() {
   const [addingTeeTo, setAddingTeeTo] = useState(null)
   const [teeForm, setTeeForm] = useState(EMPTY_TEE_FORM)
 
+  // Club editor
+  const [editingCourse, setEditingCourse] = useState(null)
+  const [courseEditForm, setCourseEditForm] = useState(null)
+  const [savingCourse, setSavingCourse] = useState(false)
+  const [courseEditError, setCourseEditError] = useState(null)
+
   // Unified tee editor
   const [editingTee, setEditingTee] = useState(null)
   const [teeEditForm, setTeeEditForm] = useState(null)
@@ -96,6 +102,36 @@ export default function MyCourses() {
     if (expandedLayout === layoutId) { setExpandedLayout(null); return }
     setExpandedLayout(layoutId)
     if (!layoutTees[layoutId]) await loadTees(layoutId)
+  }
+
+  const openCourseEdit = (course) => {
+    setCourseEditForm({ name: course.name, city: course.city ?? '', country: course.country ?? '' })
+    setCourseEditError(null)
+    setEditingCourse(course.id)
+  }
+
+  const closeCourseEdit = () => {
+    setEditingCourse(null)
+    setCourseEditForm(null)
+    setCourseEditError(null)
+  }
+
+  const saveClubEdit = async (courseId) => {
+    setSavingCourse(true)
+    setCourseEditError(null)
+    try {
+      const updated = await api.put(`/courses/${courseId}`, {
+        name: courseEditForm.name,
+        city: courseEditForm.city,
+        country: courseEditForm.country,
+      })
+      setCourses(prev => prev.map(c => c.id === courseId ? { ...c, ...updated.data } : c))
+      closeCourseEdit()
+    } catch (err) {
+      setCourseEditError(err.response?.data?.detail ?? err.message ?? t('myCourses.saveFailed'))
+    } finally {
+      setSavingCourse(false)
+    }
   }
 
   const openEditPanel = async (tee) => {
@@ -368,18 +404,73 @@ export default function MyCourses() {
             </div>
             <div className="flex items-center gap-3">
               {canDelete(course.created_by) && (
-                <button
-                  onClick={e => { e.stopPropagation(); deleteCourse(course.id) }}
-                  className="text-red-500 text-sm"
-                >
-                  {t('myCourses.delete')}
-                </button>
+                <>
+                  <button
+                    onClick={e => { e.stopPropagation(); editingCourse === course.id ? closeCourseEdit() : openCourseEdit(course) }}
+                    className="text-green-700 text-sm"
+                  >
+                    {editingCourse === course.id ? t('myCourses.cancel') : t('myCourses.editCourse')}
+                  </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); deleteCourse(course.id) }}
+                    className="text-red-500 text-sm"
+                  >
+                    {t('myCourses.delete')}
+                  </button>
+                </>
               )}
               <span className="text-gray-400 text-sm select-none">
                 {expandedCourse === course.id ? '▲' : '▼'}
               </span>
             </div>
           </div>
+
+          {editingCourse === course.id && courseEditForm && (
+            <div className="border-t px-4 py-3 space-y-3">
+              <div>
+                <label className="block text-sm font-medium">{t('myCourses.courseName')}</label>
+                <input
+                  className="border rounded px-3 py-2 w-full"
+                  value={courseEditForm.name}
+                  onChange={e => setCourseEditForm(f => ({ ...f, name: e.target.value }))}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-sm font-medium">{t('myCourses.city')}</label>
+                  <input
+                    className="border rounded px-3 py-2 w-full"
+                    value={courseEditForm.city}
+                    onChange={e => setCourseEditForm(f => ({ ...f, city: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">{t('myCourses.country')}</label>
+                  <input
+                    className="border rounded px-3 py-2 w-full"
+                    value={courseEditForm.country}
+                    onChange={e => setCourseEditForm(f => ({ ...f, country: e.target.value }))}
+                  />
+                </div>
+              </div>
+              {courseEditError && <p className="text-red-600 text-sm">{courseEditError}</p>}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => saveClubEdit(course.id)}
+                  disabled={savingCourse}
+                  className="bg-green-700 text-white px-4 py-2 rounded flex-1 text-sm disabled:opacity-50"
+                >
+                  {savingCourse ? t('myCourses.saving') : t('myCourses.save')}
+                </button>
+                <button
+                  onClick={closeCourseEdit}
+                  className="border px-4 py-2 rounded flex-1 text-sm"
+                >
+                  {t('myCourses.cancel')}
+                </button>
+              </div>
+            </div>
+          )}
 
           {expandedCourse === course.id && (
             <div className="border-t bg-gray-50 px-4 py-3 space-y-2">
