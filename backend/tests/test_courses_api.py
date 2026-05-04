@@ -472,6 +472,55 @@ async def test_admin_can_update_any_tee(client):
     assert resp.status_code == 200
 
 
+# ── tee creation cross-user ───────────────────────────────────────────────────
+
+async def test_any_user_can_add_tee_to_others_layout(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Bane"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    resp = await client.post(
+        f"/api/courses/local/{layout['id']}/tees",
+        json={"name": "Rød"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["name"] == "Rød"
+    assert data["created_by"] == _user3.id
+
+
+async def test_tee_creator_can_edit_their_tee_on_others_layout(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Bane"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    tee = (await client.post(
+        f"/api/courses/local/{layout['id']}/tees",
+        json={"name": "Rød"},
+    )).json()
+
+    resp = await client.put(f"/api/courses/local/tees/{tee['id']}", json={"name": "Oppdatert"})
+    assert resp.status_code == 200
+    assert resp.json()["name"] == "Oppdatert"
+
+
+async def test_tee_creator_can_delete_their_tee_on_others_layout(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Bane"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    tee = (await client.post(
+        f"/api/courses/local/{layout['id']}/tees",
+        json={"name": "Rød"},
+    )).json()
+
+    resp = await client.delete(f"/api/courses/local/tees/{tee['id']}")
+    assert resp.status_code == 200
+
+
 # ── nested tee update ownership (PUT /local/{layout_id}/tees/{tee_id}) ───────
 
 async def test_user_cannot_update_other_users_tee_nested(client):

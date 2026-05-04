@@ -36,6 +36,7 @@ class LocalTee(Base):
     __tablename__ = "local_tees"
     id = Column(Integer, primary_key=True)
     course_id = Column(Integer, ForeignKey("local_courses.id"), nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     name = Column(String, nullable=False)
     color = Column(String)
     slope = Column(Float)

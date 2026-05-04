@@ -62,6 +62,7 @@ async def create_layout(
     if data.slope is not None or data.course_rating is not None:
         db.add(LocalTee(
             course_id=layout.id,
+            created_by=current_user.id,
             name=data.tee_name or 'Gul',
             slope=data.slope,
             course_rating=data.course_rating,
@@ -180,7 +181,11 @@ async def update_tee_flat(
     if not tee:
         raise HTTPException(404, "Tee not found")
     layout = await db.get(LocalCourse, tee.course_id)
-    if current_user.role != UserRole.admin and (layout is None or layout.created_by != current_user.id):
+    if (
+        current_user.role != UserRole.admin
+        and (layout is None or layout.created_by != current_user.id)
+        and tee.created_by != current_user.id
+    ):
         raise HTTPException(403, "Forbidden")
     for k, v in data.model_dump(exclude_unset=True).items():
         setattr(tee, k, v)
@@ -202,7 +207,11 @@ async def delete_tee(
     if not tee:
         raise HTTPException(404, "Tee not found")
     layout = await db.get(LocalCourse, tee.course_id)
-    if current_user.role != UserRole.admin and (layout is None or layout.created_by != current_user.id):
+    if (
+        current_user.role != UserRole.admin
+        and (layout is None or layout.created_by != current_user.id)
+        and tee.created_by != current_user.id
+    ):
         raise HTTPException(403, "Forbidden")
     await db.delete(tee)
     await db.commit()
@@ -289,8 +298,13 @@ async def delete_local_layout(
     return {"ok": True}
 
 @router.post("/local/{layout_id:int}/tees")
-async def add_tee(layout_id: int, data: TeeCreate, db: AsyncSession = Depends(get_db)):
-    tee = LocalTee(course_id=layout_id, **data.model_dump())
+async def add_tee(
+    layout_id: int,
+    data: TeeCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    tee = LocalTee(course_id=layout_id, created_by=current_user.id, **data.model_dump())
     db.add(tee)
     await db.commit()
     await db.refresh(tee)
@@ -311,7 +325,11 @@ async def update_tee(
     if not tee:
         raise HTTPException(404, "Tee not found")
     layout = await db.get(LocalCourse, layout_id)
-    if current_user.role != UserRole.admin and (layout is None or layout.created_by != current_user.id):
+    if (
+        current_user.role != UserRole.admin
+        and (layout is None or layout.created_by != current_user.id)
+        and tee.created_by != current_user.id
+    ):
         raise HTTPException(403, "Forbidden")
     for k, v in data.model_dump(exclude_unset=True).items():
         setattr(tee, k, v)
