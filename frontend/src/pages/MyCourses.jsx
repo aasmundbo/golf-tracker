@@ -443,7 +443,7 @@ export default function MyCourses() {
                                     >
                                       {t('myCourses.duplicateTee')}
                                     </button>
-                                    {canDelete(layout.created_by) && (
+                                    {(canDelete(tee.created_by) || canDelete(layout.created_by)) && (
                                       <button
                                         onClick={() => { setOpenTeeMenu(null); deleteTee(layout.id, tee.id) }}
                                         className="w-full text-left px-3 py-1.5 text-xs text-red-500 hover:bg-red-50"
