@@ -421,12 +421,14 @@ export default function MyCourses() {
                               {teeHasSavedHoles(tee.id) && editingTee !== tee.id && (
                                 <span className="text-xs text-green-700">{t('myCourses.holesSaved')}</span>
                               )}
-                              <button
-                                onClick={() => editingTee === tee.id ? closeTeeEdit() : openEditPanel(tee)}
-                                className="text-xs bg-green-700 text-white rounded px-2 py-0.5 hover:bg-green-800"
-                              >
-                                {editingTee === tee.id ? t('myCourses.cancel') : t('myCourses.editTee')}
-                              </button>
+                              {(canDelete(tee.created_by) || canDelete(layout.created_by)) && (
+                                <button
+                                  onClick={() => editingTee === tee.id ? closeTeeEdit() : openEditPanel(tee)}
+                                  className="text-xs bg-green-700 text-white rounded px-2 py-0.5 hover:bg-green-800"
+                                >
+                                  {editingTee === tee.id ? t('myCourses.cancel') : t('myCourses.editTee')}
+                                </button>
+                              )}
                               <div className="relative" ref={openTeeMenu === tee.id ? teeMenuRef : null}>
                                 <button
                                   onClick={() => setOpenTeeMenu(v => v === tee.id ? null : tee.id)}
