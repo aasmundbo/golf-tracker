@@ -3,7 +3,7 @@
   "nav": {
     "newRound": "Ny runde",
     "history": "Historikk",
-    "myCourses": "Mine baner",
+    "myCourses": "Baner",
     "settings": "Innstillinger",
     "admin": "Admin"
   },
@@ -48,7 +48,7 @@
     "confirmDelete": "Slett denne runden?"
   },
   "myCourses": {
-    "title": "Mine baner",
+    "title": "Baner",
     "addCourse": "+ Legg til bane",
     "newCourse": "Ny bane",
     "courseName": "Banenavn",
@@ -71,6 +71,8 @@
     "teeNameOptionalNote": "(valgfritt, brukes hvis slope/CR er satt)",
     "teeNameOptionalPlaceholder": "f.eks. Hvit",
     "noCourses": "Ingen baner lagt til ennå.",
+    "showMine": "Vis bare mine",
+    "showAll": "Vis alle",
     "confirmDeleteCourse": "Slett banen? Dette sletter alle varianter og teer.",
     "confirmDeleteLayout": "Slett bane?",
     "holesSaved": "18 hull lagret",
