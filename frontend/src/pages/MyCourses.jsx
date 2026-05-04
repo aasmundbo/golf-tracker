@@ -452,7 +452,7 @@ export default function MyCourses() {
                                       </button>
                                     )}
                                     <a
-                                      href={`https://github.com/aasmundbo/golf-tracker/issues/new?title=${encodeURIComponent(`Problem med tee: ${tee.name} (${course.name})`)}&body=${encodeURIComponent(`**Bane:** ${course.name}\n**Tee:** ${tee.name}\n\n**Beskriv problemet:**\n\n`)}`}
+                                      href={`https://github.com/aasmundbo/golf-tracker/issues/new?title=${encodeURIComponent(t('myCourses.reportIssueTitle', { teeName: tee.name, courseName: course.name }))}&body=${encodeURIComponent(t('myCourses.reportIssueBody', { teeName: tee.name, courseName: course.name }))}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       onClick={() => setOpenTeeMenu(null)}
