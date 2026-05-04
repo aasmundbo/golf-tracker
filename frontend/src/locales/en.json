@@ -3,7 +3,7 @@
   "nav": {
     "newRound": "New round",
     "history": "History",
-    "myCourses": "My courses",
+    "myCourses": "Courses",
     "settings": "Settings",
     "admin": "Admin"
   },
@@ -48,7 +48,7 @@
     "confirmDelete": "Delete this round?"
   },
   "myCourses": {
-    "title": "My courses",
+    "title": "Courses",
     "addCourse": "+ Add course",
     "newCourse": "New course",
     "courseName": "Course name",
@@ -71,6 +71,8 @@
     "teeNameOptionalNote": "(optional, used if slope/CR is set)",
     "teeNameOptionalPlaceholder": "e.g. White",
     "noCourses": "No courses added yet.",
+    "showMine": "Show only mine",
+    "showAll": "Show all",
     "confirmDeleteCourse": "Delete course? This will delete all layouts and tees.",
     "confirmDeleteLayout": "Delete course?",
     "holesSaved": "18 holes saved",

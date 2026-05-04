@@ -18,6 +18,7 @@ export default function MyCourses() {
   const [expandedLayout, setExpandedLayout] = useState(null)
   const [layoutTees, setLayoutTees] = useState({})
 
+  const [showMine, setShowMine] = useState(false)
   const [addingCourse, setAddingCourse] = useState(false)
   const [courseForm, setCourseForm] = useState(EMPTY_COURSE_FORM)
   const [courseError, setCourseError] = useState(null)
@@ -64,10 +65,12 @@ export default function MyCourses() {
   const canDelete = (createdBy) =>
     currentUser?.role === 'admin' || createdBy === currentUser?.id
 
-  const loadCourses = () =>
-    api.get('/courses').then(r => setCourses(r.data)).catch(() => {})
+  const loadCourses = (mine = false) =>
+    api.get('/courses', { params: mine ? { mine: 'true' } : {} })
+      .then(r => setCourses(r.data))
+      .catch(() => {})
 
-  useEffect(() => { loadCourses() }, [])
+  useEffect(() => { loadCourses(showMine) }, [showMine])
 
   const loadLayouts = async (courseId) => {
     const res = await api.get(`/courses/${courseId}/layouts`)
@@ -305,12 +308,24 @@ export default function MyCourses() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">{t('myCourses.title')}</h2>
-        <button
-          onClick={() => { setAddingCourse(!addingCourse); setCourseForm(EMPTY_COURSE_FORM); setCourseError(null) }}
-          className="bg-green-700 text-white px-3 py-1 rounded text-sm"
-        >
-          {t('myCourses.addCourse')}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowMine(v => !v)}
+            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+              showMine
+                ? 'bg-green-700 text-white border-green-700'
+                : 'bg-white text-gray-600 border-gray-300 hover:border-green-700'
+            }`}
+          >
+            {showMine ? t('myCourses.showMine') : t('myCourses.showAll')}
+          </button>
+          <button
+            onClick={() => { setAddingCourse(!addingCourse); setCourseForm(EMPTY_COURSE_FORM); setCourseError(null) }}
+            className="bg-green-700 text-white px-3 py-1 rounded text-sm"
+          >
+            {t('myCourses.addCourse')}
+          </button>
+        </div>
       </div>
 
       {/* New top-level course form */}

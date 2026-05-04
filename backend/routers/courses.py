@@ -10,7 +10,8 @@ from schemas.course import (
     ClubCreate, ClubUpdate, LayoutCreate, LayoutUpdate,
     CourseCreate, CourseUpdate, TeeCreate, TeeUpdate, HoleUpsert, BulkHoleUpsert,
 )
-from auth import get_current_user
+from typing import Optional
+from auth import get_current_user, get_optional_current_user
 
 router = APIRouter(prefix="/api/courses", tags=["courses"])
 
@@ -23,8 +24,29 @@ async def search_courses(q: str, db: AsyncSession = Depends(get_db)):
 # ── Top-level course CRUD (LocalClub → "Bane" to user) ───────────────────────
 
 @router.get("")
-async def list_courses(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(LocalClub))
+async def list_courses(
+    mine: bool = False,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user),
+):
+    if mine and current_user:
+        uid = current_user.id
+        layout_club_ids = select(LocalCourse.club_id).where(LocalCourse.created_by == uid)
+        tee_club_ids = (
+            select(LocalCourse.club_id)
+            .join(LocalTee, LocalTee.course_id == LocalCourse.id)
+            .where(LocalTee.created_by == uid)
+        )
+        stmt = select(LocalClub).where(
+            or_(
+                LocalClub.created_by == uid,
+                LocalClub.id.in_(layout_club_ids),
+                LocalClub.id.in_(tee_club_ids),
+            )
+        )
+    else:
+        stmt = select(LocalClub)
+    result = await db.execute(stmt)
     return result.scalars().all()
 
 @router.post("")

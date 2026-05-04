@@ -44,3 +44,23 @@ async def get_current_user(
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
     return user
+
+
+async def get_optional_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_security),
+    session: AsyncSession = Depends(get_db),
+):
+    from models.user import User  # local import to avoid circular
+
+    if credentials is None:
+        return None
+    try:
+        payload = _decode_token(credentials.credentials)
+        sub: str | None = payload.get("sub")
+        if not sub:
+            return None
+        user_id = int(sub)
+    except (JWTError, ValueError):
+        return None
+    result = await session.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()

@@ -570,3 +570,80 @@ async def test_admin_can_update_any_tee_nested(client):
     app.dependency_overrides[get_current_user] = lambda: _admin
     resp = await client.put(f"/api/courses/local/{layout['id']}/tees/{tee_id}", json={"name": "Admin Updated"})
     assert resp.status_code == 200
+
+
+# ── ?mine=true filter ─────────────────────────────────────────────────────────
+
+async def test_mine_filter_returns_own_club(client):
+    from auth import get_optional_current_user
+
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    app.dependency_overrides[get_optional_current_user] = lambda: _user2
+    (await client.post("/api/courses", json={"name": "User2 Club"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    app.dependency_overrides[get_optional_current_user] = lambda: _user3
+    (await client.post("/api/courses", json={"name": "User3 Club"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    app.dependency_overrides[get_optional_current_user] = lambda: _user2
+
+    resp = await client.get("/api/courses", params={"mine": "true"})
+    assert resp.status_code == 200
+    names = [c["name"] for c in resp.json()]
+    assert "User2 Club" in names
+    assert "User3 Club" not in names
+
+
+async def test_mine_filter_includes_club_where_user_created_layout(client):
+    from auth import get_optional_current_user
+
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    app.dependency_overrides[get_optional_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "Shared Club"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    app.dependency_overrides[get_optional_current_user] = lambda: _user3
+    await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "User3 Layout"})
+
+    resp = await client.get("/api/courses", params={"mine": "true"})
+    assert resp.status_code == 200
+    names = [c["name"] for c in resp.json()]
+    assert "Shared Club" in names
+
+
+async def test_mine_filter_includes_club_where_user_created_tee(client):
+    from auth import get_optional_current_user
+
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    app.dependency_overrides[get_optional_current_user] = lambda: _user2
+    club = (await client.post("/api/courses", json={"name": "Tee Club"})).json()
+    layout = (await client.post(f"/api/courses/{club['id']}/layouts", json={"name": "Bane"})).json()
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    app.dependency_overrides[get_optional_current_user] = lambda: _user3
+    await client.post(f"/api/courses/local/{layout['id']}/tees", json={"name": "Rød"})
+
+    resp = await client.get("/api/courses", params={"mine": "true"})
+    assert resp.status_code == 200
+    names = [c["name"] for c in resp.json()]
+    assert "Tee Club" in names
+
+
+async def test_mine_false_returns_all_courses(client):
+    from auth import get_optional_current_user
+
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    app.dependency_overrides[get_optional_current_user] = lambda: _user2
+    await client.post("/api/courses", json={"name": "User2 Club"})
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    app.dependency_overrides[get_optional_current_user] = lambda: _user3
+    await client.post("/api/courses", json={"name": "User3 Club"})
+
+    app.dependency_overrides[get_optional_current_user] = lambda: None
+    resp = await client.get("/api/courses")
+    assert resp.status_code == 200
+    names = [c["name"] for c in resp.json()]
+    assert "User2 Club" in names
+    assert "User3 Club" in names
