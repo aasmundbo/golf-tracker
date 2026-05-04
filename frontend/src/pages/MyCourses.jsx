@@ -357,7 +357,7 @@ export default function MyCourses() {
 
       {/* Course list */}
       {courses.map(course => (
-        <div key={course.id} className="bg-white border rounded-xl overflow-hidden">
+        <div key={course.id} className="bg-white border rounded-xl">
           <div
             className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
             onClick={() => toggleCourse(course.id)}
@@ -384,7 +384,7 @@ export default function MyCourses() {
           {expandedCourse === course.id && (
             <div className="border-t bg-gray-50 px-4 py-3 space-y-2">
               {(layouts[course.id] || []).map(layout => (
-                <div key={layout.id} className="bg-white border rounded-lg overflow-hidden">
+                <div key={layout.id} className="bg-white border rounded-lg">
                   <div
                     className="px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-green-50"
                     onClick={() => toggleLayout(layout.id)}
