@@ -87,6 +87,7 @@
     "confirmDeleteTee": "Delete tee?",
     "editTee": "Edit",
     "duplicateTee": "Duplicate",
+    "reportIssue": "Report issue",
     "parAutoNote": "par field can be overridden, or calculated automatically as the sum of hole pars"
   },
   "holeCard": {

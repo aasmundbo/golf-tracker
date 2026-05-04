@@ -87,6 +87,7 @@
     "confirmDeleteTee": "Slett tee?",
     "editTee": "Rediger",
     "duplicateTee": "Dupliser",
+    "reportIssue": "Rapporter problem",
     "parAutoNote": "par-feltet kan overstyres, eller beregnes automatisk som sum av hull-parene"
   },
   "holeCard": {

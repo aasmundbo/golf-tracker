@@ -451,6 +451,15 @@ export default function MyCourses() {
                                         {t('myCourses.delete')}
                                       </button>
                                     )}
+                                    <a
+                                      href={`https://github.com/aasmundbo/golf-tracker/issues/new?title=${encodeURIComponent(`Problem med tee: ${tee.name} (${course.name})`)}&body=${encodeURIComponent(`**Bane:** ${course.name}\n**Tee:** ${tee.name}\n\n**Beskriv problemet:**\n\n`)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={() => setOpenTeeMenu(null)}
+                                      className="block w-full text-left px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50"
+                                    >
+                                      🐛 {t('myCourses.reportIssue')}
+                                    </a>
                                   </div>
                                 )}
                               </div>
