@@ -138,7 +138,7 @@ export default function NewRound() {
       <div className="space-y-4 mt-6">
         <h2 className="text-xl font-bold">{t('newRound.startWithoutDataTitle')}</h2>
         {MANUAL_FIELDS.map(f => {
-          const isDecimal = ['slope', 'course_rating'].includes(f)
+          const isDecimal = ['slope', 'course_rating', 'hcp_index'].includes(f)
           const isNumeric = isDecimal || f === 'hcp_index'
           return (
             <div key={f}>
@@ -221,7 +221,7 @@ export default function NewRound() {
           <input
             type="number"
             step="0.1"
-            inputMode="numeric"
+            inputMode="decimal"
             className="border rounded px-3 py-2 w-full"
             value={hcp}
             onChange={e => { setHcp(e.target.value); calcPlayingHcp(selectedTee, e.target.value) }}
