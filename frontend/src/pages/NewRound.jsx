@@ -12,6 +12,7 @@ export default function NewRound() {
   const [courseDetail, setCourseDetail] = useState(null)
   const [selectedTee, setSelectedTee] = useState(null)
   const [hcp, setHcp] = useState('')
+  const [defaultHcp, setDefaultHcp] = useState(null)
   const [playingHcp, setPlayingHcp] = useState(null)
   const [manualMode, setManualMode] = useState(false)
   const [manualData, setManualData] = useState({
@@ -25,6 +26,16 @@ export default function NewRound() {
 
   useEffect(() => {
     api.get('/rounds/recent-courses').then(r => setRecentCourses(r.data)).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    api.get('/users/me').then(r => {
+      const val = r.data.default_hcp_index
+      if (val != null) {
+        setDefaultHcp(val)
+        setHcp(prev => prev === '' ? String(val) : prev)
+      }
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -108,6 +119,10 @@ export default function NewRound() {
         }
       }
       const res = await api.post('/rounds', payload)
+      const usedHcp = parseFloat(manualMode ? manualData.hcp_index : hcp)
+      if (!isNaN(usedHcp) && usedHcp !== defaultHcp) {
+        api.patch('/users/me', { default_hcp_index: usedHcp }).catch(() => {})
+      }
       navigate(`/round/${res.data.id}`)
     } catch {
       alert(t('newRound.failedToStart'))

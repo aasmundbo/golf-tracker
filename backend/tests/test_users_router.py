@@ -309,6 +309,41 @@ async def test_patch_me_rejects_invalid_score_display(users_client):
     assert resp.status_code == 422
 
 
+# ── default_hcp_index field ───────────────────────────────────────────────────
+
+async def test_get_me_returns_default_hcp_index_when_set(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        user = User(id=93, email="hcp@test.com", name="Hcp", role=UserRole.user, default_hcp_index=18.4)
+        s.add(user)
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_user_ns(id=93, email="hcp@test.com", name="Hcp", default_hcp_index=18.4)
+
+    resp = await client.get("/api/users/me")
+    assert resp.status_code == 200
+    assert resp.json()["default_hcp_index"] == 18.4
+
+
+async def test_patch_me_updates_default_hcp_index_and_persists(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        user = User(id=94, email="hcppatch@test.com", name="HcpPatch", role=UserRole.user, default_hcp_index=15.0)
+        s.add(user)
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_user_ns(id=94, email="hcppatch@test.com", name="HcpPatch", default_hcp_index=15.0)
+
+    resp = await client.patch("/api/users/me", json={"default_hcp_index": 20.2})
+    assert resp.status_code == 200
+    assert resp.json()["default_hcp_index"] == 20.2
+
+    async with SessionLocal() as s:
+        result = await s.execute(select(User).where(User.id == 94))
+        user = result.scalar_one()
+        assert user.default_hcp_index == 20.2
+
+
 async def test_delete_me_deletes_rounds(users_client):
     client, SessionLocal = users_client
     async with SessionLocal() as s:
