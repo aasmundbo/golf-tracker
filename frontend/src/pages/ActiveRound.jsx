@@ -211,14 +211,13 @@ export default function ActiveRound() {
 
       {round.status === 'active' && (
         <div className="flex items-center gap-2">
-          {Object.keys(scores).length > 0 && (
-            <button
-              onClick={finishRound}
-              className="flex-1 bg-gray-800 text-white py-2 rounded font-semibold"
-            >
-              {t('activeRound.finishRound')}
-            </button>
-          )}
+          <button
+            onClick={finishRound}
+            disabled={Object.keys(scores).length === 0}
+            className="flex-1 bg-gray-800 text-white py-2 rounded font-semibold disabled:opacity-40"
+          >
+            {t('activeRound.finishRound')}
+          </button>
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setShowMenu(v => !v)}
