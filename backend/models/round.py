@@ -23,6 +23,8 @@ class Round(Base):
     slope = Column(Float)
     course_rating = Column(Float)
     par_total = Column(Integer)
+    city = Column(String)
+    country = Column(String)
     hcp_index = Column(Float)
     playing_handicap = Column(Integer)
     started_at = Column(DateTime, default=_utcnow)

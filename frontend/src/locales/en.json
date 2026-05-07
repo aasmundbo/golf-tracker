@@ -21,7 +21,11 @@
     "failedToStart": "Failed to start round",
     "manualLabels": {
       "club_name": "Club",
+      "city": "City",
+      "country": "Country",
       "course_name": "Course variant (optional)",
+      "tee_name": "Tee name",
+      "par_total": "Course par",
       "slope": "Slope",
       "course_rating": "Course rating",
       "hcp_index": "Your handicap"

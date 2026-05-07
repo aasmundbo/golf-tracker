@@ -12,6 +12,8 @@ class RoundCreate(BaseModel):
     slope: float
     course_rating: float
     par_total: Optional[int] = 72
+    city: Optional[str] = None
+    country: Optional[str] = None
     hcp_index: float = Field(..., ge=0.0, le=54.0)
 
 class RoundResponse(BaseModel):

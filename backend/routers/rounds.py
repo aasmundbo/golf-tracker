@@ -60,7 +60,7 @@ async def start_round(
         )
         club = club_result.scalar_one_or_none()
         if not club:
-            club = LocalClub(name=club_label)
+            club = LocalClub(name=club_label, city=data.city, country=data.country)
             db.add(club)
             await db.flush()
 

@@ -21,7 +21,11 @@
     "failedToStart": "Feil: kunne ikke starte runde",
     "manualLabels": {
       "club_name": "Klubb",
+      "city": "Sted",
+      "country": "Land",
       "course_name": "Banevariant (valgfritt)",
+      "tee_name": "Tee-navn",
+      "par_total": "Banens par",
       "slope": "Slope",
       "course_rating": "Course rating",
       "hcp_index": "Ditt handicap"

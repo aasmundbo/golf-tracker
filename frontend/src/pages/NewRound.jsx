@@ -16,7 +16,7 @@ export default function NewRound() {
   const [playingHcp, setPlayingHcp] = useState(null)
   const [manualMode, setManualMode] = useState(false)
   const [manualData, setManualData] = useState({
-    club_name: '', course_name: 'Hovedbane', slope: '', course_rating: '', hcp_index: ''
+    club_name: '', city: '', country: '', course_name: 'Hovedbane', tee_name: '', par_total: '', slope: '', course_rating: '', hcp_index: ''
   })
   const [loading, setLoading] = useState(false)
   const [searchLoading, setSearchLoading] = useState(false)
@@ -101,6 +101,10 @@ export default function NewRound() {
           course_source: 'on_the_fly',
           club_name: manualData.club_name,
           course_name: manualData.course_name || manualData.club_name,
+          tee_name: manualData.tee_name || undefined,
+          par_total: manualData.par_total ? parseInt(manualData.par_total) : undefined,
+          city: manualData.city || undefined,
+          country: manualData.country || undefined,
           slope: parseFloat(manualData.slope),
           course_rating: parseFloat(manualData.course_rating),
           hcp_index: parseFloat(manualData.hcp_index),
@@ -131,27 +135,31 @@ export default function NewRound() {
     }
   }
 
-  const MANUAL_FIELDS = ['club_name', 'course_name', 'slope', 'course_rating', 'hcp_index']
+  const MANUAL_FIELDS = ['club_name', 'city', 'country', 'course_name', 'tee_name', 'par_total', 'slope', 'course_rating', 'hcp_index']
+
+  const getInputProps = (f) => {
+    if (['slope', 'course_rating', 'hcp_index'].includes(f))
+      return { inputMode: 'decimal', pattern: '[0-9]*' }
+    if (f === 'par_total')
+      return { type: 'number', inputMode: 'numeric', min: '1' }
+    return {}
+  }
 
   if (manualMode) {
     return (
       <div className="space-y-4 mt-6">
         <h2 className="text-xl font-bold">{t('newRound.startWithoutDataTitle')}</h2>
-        {MANUAL_FIELDS.map(f => {
-          const isDecimal = ['slope', 'course_rating', 'hcp_index'].includes(f)
-          const isNumeric = isDecimal || f === 'hcp_index'
-          return (
-            <div key={f}>
-              <label className="block text-sm font-medium">{t(`newRound.manualLabels.${f}`)}</label>
-              <input
-                className="border rounded px-3 py-2 w-full"
-                value={manualData[f]}
-                onChange={e => setManualData(d => ({ ...d, [f]: e.target.value }))}
-                {...(isNumeric ? { inputMode: isDecimal ? 'decimal' : 'numeric', pattern: '[0-9]*' } : {})}
-              />
-            </div>
-          )
-        })}
+        {MANUAL_FIELDS.map(f => (
+          <div key={f}>
+            <label className="block text-sm font-medium">{t(`newRound.manualLabels.${f}`)}</label>
+            <input
+              className="border rounded px-3 py-2 w-full"
+              value={manualData[f]}
+              onChange={e => setManualData(d => ({ ...d, [f]: e.target.value }))}
+              {...getInputProps(f)}
+            />
+          </div>
+        ))}
         <button
           onClick={startRound}
           disabled={loading}
