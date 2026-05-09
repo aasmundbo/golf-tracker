@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from typing import Optional
 from datetime import datetime, timezone
 from database import get_db
 from models.round import Round, HoleScore
@@ -117,14 +118,36 @@ async def start_round(
 async def list_rounds(
     skip: int = 0,
     limit: int = Query(default=50, le=200),
+    user_id: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    query = select(Round).order_by(Round.started_at.desc()).offset(skip).limit(limit)
     if current_user.role != UserRole.admin:
-        query = query.where(Round.user_id == current_user.id)
-    result = await db.execute(query)
-    return result.scalars().all()
+        if user_id is not None:
+            raise HTTPException(403, "Forbidden")
+        result = await db.execute(
+            select(Round)
+            .where(Round.user_id == current_user.id)
+            .order_by(Round.started_at.desc())
+            .offset(skip).limit(limit)
+        )
+        return result.scalars().all()
+
+    # Admin: join users to include player_name
+    stmt = (
+        select(Round, User.name.label("player_name"))
+        .join(User, Round.user_id == User.id, isouter=True)
+        .order_by(Round.started_at.desc())
+        .offset(skip).limit(limit)
+    )
+    if user_id is not None:
+        stmt = stmt.where(Round.user_id == user_id)
+    result = await db.execute(stmt)
+    rows = result.all()
+    return [
+        {**{c.key: getattr(r, c.key) for c in Round.__table__.columns}, "player_name": pname}
+        for r, pname in rows
+    ]
 
 # ── Literal-path routes (must come before /{round_id}) ───────────────────────
 
