@@ -235,14 +235,17 @@ async def finish_round(
             {"hole_number": h.hole_number, "par": h.par, "stroke_index": h.stroke_index}
             for h in hole_result.scalars().all()
         ]
-    proj = calculate_projected_handicap(
-        scores=scores,
-        hole_data=hole_data,
-        playing_handicap=round_.playing_handicap,
-        course_rating=round_.course_rating,
-        slope=round_.slope,
-    )
-    round_.projected_hcp = proj["projected_differential"]
+    try:
+        proj = calculate_projected_handicap(
+            scores=scores,
+            hole_data=hole_data,
+            playing_handicap=round_.playing_handicap,
+            course_rating=round_.course_rating,
+            slope=round_.slope,
+        )
+        round_.projected_hcp = proj["projected_differential"]
+    except Exception:
+        round_.projected_hcp = None
 
     await db.commit()
     return round_
