@@ -46,8 +46,7 @@
     "empty": "No rounds yet.",
     "active": "Active",
     "finished": "Finished",
-    "exactHandicap": "Exact handicap",
-    "playingHandicap": "Playing handicap",
+    "handicap": "Handicap",
     "delete": "Delete",
     "confirmDelete": "Delete this round?"
   },

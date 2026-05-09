@@ -46,8 +46,7 @@
     "empty": "Ingen runder ennå.",
     "active": "Aktiv",
     "finished": "Ferdig",
-    "exactHandicap": "Eksakt handicap",
-    "playingHandicap": "Spillehandicap",
+    "handicap": "Handicap",
     "delete": "Slett",
     "confirmDelete": "Slett denne runden?"
   },
