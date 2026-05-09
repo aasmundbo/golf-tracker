@@ -27,6 +27,7 @@ class Round(Base):
     country = Column(String)
     hcp_index = Column(Float)
     playing_handicap = Column(Integer)
+    projected_hcp = Column(Float, nullable=True)
     started_at = Column(DateTime, default=_utcnow)
     finished_at = Column(DateTime, nullable=True)
     status = Column(String, default="active")

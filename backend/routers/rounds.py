@@ -201,6 +201,26 @@ async def finish_round(
     _check_ownership(round_, current_user)
     round_.status = "finished"
     round_.finished_at = datetime.now(timezone.utc)
+
+    scores = await _get_deduped_scores(db, round_id)
+    hole_data = []
+    if round_.tee_id:
+        hole_result = await db.execute(
+            select(LocalHole).where(LocalHole.tee_id == round_.tee_id).order_by(LocalHole.hole_number)
+        )
+        hole_data = [
+            {"hole_number": h.hole_number, "par": h.par, "stroke_index": h.stroke_index}
+            for h in hole_result.scalars().all()
+        ]
+    proj = calculate_projected_handicap(
+        scores=scores,
+        hole_data=hole_data,
+        playing_handicap=round_.playing_handicap,
+        course_rating=round_.course_rating,
+        slope=round_.slope,
+    )
+    round_.projected_hcp = proj["projected_differential"]
+
     await db.commit()
     return round_
 

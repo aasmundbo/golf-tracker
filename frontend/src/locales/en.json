@@ -47,7 +47,7 @@
     "active": "Active",
     "finished": "Finished",
     "handicap": "Handicap",
-    "playingHandicap": "Playing handicap",
+    "playedTo": "Played to",
     "delete": "Delete",
     "confirmDelete": "Delete this round?"
   },
