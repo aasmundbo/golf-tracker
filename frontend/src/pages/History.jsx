@@ -38,7 +38,7 @@ export default function History() {
               </span>
             </div>
             <div className="text-sm text-gray-500 mt-1">
-              {t('history.handicap')} {r.hcp_index}{r.projected_hcp != null ? ` · ${t('history.playedTo')} ${r.projected_hcp}` : ''} · {new Date(r.started_at).toLocaleDateString(i18n.resolvedLanguage === 'nb' ? 'nb-NO' : 'en-GB')}
+              {t('history.handicap')} {r.hcp_index}{r.projected_hcp != null ? <> · {t('history.playedTo')} {r.projected_hcp}{r.projected_hcp < r.hcp_index ? <span className="text-green-500">↓</span> : r.projected_hcp > r.hcp_index ? <span className="text-red-500">↑</span> : null}</> : null} · {new Date(r.started_at).toLocaleDateString(i18n.resolvedLanguage === 'nb' ? 'nb-NO' : 'en-GB')}
             </div>
           </Link>
           <button
