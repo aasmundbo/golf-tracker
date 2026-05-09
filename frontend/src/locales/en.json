@@ -39,7 +39,8 @@
     "showScorecard": "Scorecard",
     "finishRound": "Finish round",
     "deleteRound": "Delete round",
-    "confirmDelete": "Delete this round?"
+    "confirmDelete": "Delete this round?",
+    "somethingWentWrong": "Something went wrong – please try again"
   },
   "history": {
     "title": "Round history",

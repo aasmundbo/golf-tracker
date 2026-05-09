@@ -39,7 +39,8 @@
     "showScorecard": "Scorekort",
     "finishRound": "Avslutt runde",
     "deleteRound": "Slett runde",
-    "confirmDelete": "Slett denne runden?"
+    "confirmDelete": "Slett denne runden?",
+    "somethingWentWrong": "Noe gikk galt – prøv igjen"
   },
   "history": {
     "title": "Rundehistorikk",

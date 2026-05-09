@@ -68,7 +68,7 @@ export default function ActiveRound() {
         if (!scoreMap[h]) { setCurrentHole(h); break }
       }
     } catch (err) {
-      setError('Noe gikk galt – prøv igjen')
+      setError(t('activeRound.somethingWentWrong'))
     }
   }
 
@@ -88,7 +88,7 @@ export default function ActiveRound() {
       await loadRound()
       if (holeNumber < totalHoles) setCurrentHole(holeNumber + 1)
     } catch (err) {
-      setError('Noe gikk galt – prøv igjen')
+      setError(t('activeRound.somethingWentWrong'))
     }
   }
 
