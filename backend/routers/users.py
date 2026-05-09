@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
@@ -31,6 +31,12 @@ class UserPatch(BaseModel):
     preferred_language: Optional[str] = None
     default_hcp_index: Optional[float] = None
     score_display: Optional[Literal["netto", "brutto"]] = None
+
+
+class UserSearchResult(BaseModel):
+    id: int
+    display_name: str
+    email: str
 
 
 def _require_admin(current_user=Depends(get_current_user)):
@@ -67,15 +73,26 @@ async def patch_me(
     return user
 
 
-@router.get("", response_model=list[UserResponse])
+@router.get("")
 async def list_users(
+    search: Optional[str] = None,
     current_user=Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
     if current_user.role != UserRole.admin:
         raise HTTPException(status_code=403, detail="Admin required")
+    if search is not None:
+        pattern = f"%{search}%"
+        result = await session.execute(
+            select(User).where(
+                (User.name.ilike(pattern)) | (User.email.ilike(pattern))
+            ).limit(20)
+        )
+        users = result.scalars().all()
+        return [UserSearchResult(id=u.id, display_name=u.name, email=u.email) for u in users]
     result = await session.execute(select(User))
-    return result.scalars().all()
+    users = result.scalars().all()
+    return [UserResponse.model_validate(u) for u in users]
 
 
 @router.delete("/me", status_code=204)

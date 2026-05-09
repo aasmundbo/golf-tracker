@@ -364,3 +364,61 @@ async def test_delete_me_deletes_rounds(users_client):
     async with SessionLocal() as s:
         result = await s.execute(select(Round).where(Round.id == 300))
         assert result.scalar_one_or_none() is None
+
+
+# ── GET /users?search= (admin search) ─────────────────────────────────────────
+
+async def test_admin_search_users_by_name(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        s.add(User(email="alice@test.com", name="Alice Andersen", role=UserRole.user))
+        s.add(User(email="bob@test.com", name="Bob Berg", role=UserRole.user))
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_admin_ns()
+
+    resp = await client.get("/api/users?search=alice")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data) == 1
+    assert data[0]["display_name"] == "Alice Andersen"
+    assert "email" in data[0]
+    assert "id" in data[0]
+
+
+async def test_admin_search_users_by_email(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        s.add(User(email="charlie@example.com", name="Charlie", role=UserRole.user))
+        s.add(User(email="dana@other.com", name="Dana", role=UserRole.user))
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_admin_ns()
+
+    resp = await client.get("/api/users?search=example")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data) == 1
+    assert data[0]["display_name"] == "Charlie"
+
+
+async def test_non_admin_cannot_search_users(users_client):
+    client, _ = users_client
+    app.dependency_overrides[get_current_user] = lambda: _make_user_ns()
+
+    resp = await client.get("/api/users?search=alice")
+    assert resp.status_code == 403
+
+
+async def test_admin_list_users_without_search_returns_all(users_client):
+    client, SessionLocal = users_client
+    async with SessionLocal() as s:
+        s.add(User(email="x@test.com", name="X", role=UserRole.user))
+        s.add(User(email="y@test.com", name="Y", role=UserRole.user))
+        await s.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _make_admin_ns()
+
+    resp = await client.get("/api/users")
+    assert resp.status_code == 200
+    assert len(resp.json()) == 2
