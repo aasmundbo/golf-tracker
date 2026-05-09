@@ -32,7 +32,7 @@ export default function HandicapHistoryChart({ rounds, locale }) {
     .filter(r => r.projected_hcp != null)
     .sort((a, b) => new Date(a.started_at) - new Date(b.started_at))
 
-  if (chartRounds.length < 2) return null
+  if (chartRounds.length < 1) return null
 
   const langTag = locale === 'nb' ? 'nb-NO' : 'en-GB'
   const labels = chartRounds.map(r =>
