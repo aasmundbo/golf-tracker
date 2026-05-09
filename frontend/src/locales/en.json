@@ -49,7 +49,20 @@
     "handicap": "Handicap",
     "playedTo": "Played to",
     "delete": "Delete",
-    "confirmDelete": "Delete this round?"
+    "confirmDelete": "Delete this round?",
+    "filterAll": "All",
+    "filter30days": "Last 30 days",
+    "filter90days": "Last 90 days",
+    "filterClub": "Club",
+    "filterTee": "Tee",
+    "allClubs": "All clubs",
+    "allTees": "All tees",
+    "searchUser": "Search user",
+    "showAll": "Show all",
+    "chartRound": "Round",
+    "chartHandicap": "Handicap",
+    "chartPlayedTo": "Played to",
+    "chartRegistered": "Registered hcp"
   },
   "myCourses": {
     "title": "Courses",

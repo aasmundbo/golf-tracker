@@ -49,7 +49,20 @@
     "handicap": "Handicap",
     "playedTo": "Spilte til",
     "delete": "Slett",
-    "confirmDelete": "Slett denne runden?"
+    "confirmDelete": "Slett denne runden?",
+    "filterAll": "Alle",
+    "filter30days": "Siste 30 dager",
+    "filter90days": "Siste 90 dager",
+    "filterClub": "Klubb",
+    "filterTee": "Tee",
+    "allClubs": "Alle klubber",
+    "allTees": "Alle teer",
+    "searchUser": "Søk bruker",
+    "showAll": "Vis alle",
+    "chartRound": "Runde",
+    "chartHandicap": "Handicap",
+    "chartPlayedTo": "Spilte til",
+    "chartRegistered": "Registrert hcp"
   },
   "myCourses": {
     "title": "Baner",
