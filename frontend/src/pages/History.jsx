@@ -38,7 +38,7 @@ export default function History() {
               </span>
             </div>
             <div className="text-sm text-gray-500 mt-1">
-              {t('history.handicap')} {r.hcp_index} · {new Date(r.started_at).toLocaleDateString(i18n.resolvedLanguage === 'nb' ? 'nb-NO' : 'en-GB')}
+              {t('history.handicap')} {r.hcp_index} · {t('history.playingHandicap')} {r.playing_handicap} · {new Date(r.started_at).toLocaleDateString(i18n.resolvedLanguage === 'nb' ? 'nb-NO' : 'en-GB')}
             </div>
           </Link>
           <button

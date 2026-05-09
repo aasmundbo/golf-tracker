@@ -47,6 +47,7 @@
     "active": "Aktiv",
     "finished": "Ferdig",
     "handicap": "Handicap",
+    "playingHandicap": "Spillehandicap",
     "delete": "Slett",
     "confirmDelete": "Slett denne runden?"
   },
