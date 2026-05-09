@@ -2,9 +2,10 @@
 import types
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
 from main import app
 from auth import get_current_user
-from models.user import UserRole
+from models.user import User, UserRole
 
 ROUND_PAYLOAD = {
     "course_name": "Ownership Test Course",
@@ -86,3 +87,40 @@ async def test_record_score_forbidden_for_other_user(client):
         "hole_number": 1, "strokes": 4, "hole_par": 4, "hole_stroke_index": 1,
     })
     assert resp.status_code == 403
+
+
+async def test_admin_can_filter_rounds_by_user_id(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    await client.post("/api/rounds", json=ROUND_PAYLOAD)
+
+    app.dependency_overrides[get_current_user] = lambda: _user3
+    await client.post("/api/rounds", json=ROUND_PAYLOAD)
+
+    app.dependency_overrides[get_current_user] = lambda: _admin
+    rounds = (await client.get("/api/rounds?user_id=2")).json()
+    assert len(rounds) == 1
+    assert rounds[0]["user_id"] == 2
+
+
+async def test_non_admin_user_id_param_returns_403(client):
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    await client.post("/api/rounds", json=ROUND_PAYLOAD)
+    resp = await client.get("/api/rounds?user_id=3")
+    assert resp.status_code == 403
+
+
+async def test_admin_list_rounds_includes_player_name(client):
+    import database
+    # Insert a real User row so the JOIN can resolve the name
+    async with database.AsyncSessionLocal() as session:
+        session.add(User(id=2, email="user2@test.com", name="User 2", role=UserRole.user))
+        await session.commit()
+
+    app.dependency_overrides[get_current_user] = lambda: _user2
+    await client.post("/api/rounds", json=ROUND_PAYLOAD)
+
+    app.dependency_overrides[get_current_user] = lambda: _admin
+    rounds = (await client.get("/api/rounds")).json()
+    assert "player_name" in rounds[0]
+    user2_round = next(r for r in rounds if r["user_id"] == 2)
+    assert user2_round["player_name"] == "User 2"
