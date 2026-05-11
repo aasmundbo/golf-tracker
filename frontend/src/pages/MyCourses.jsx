@@ -6,6 +6,8 @@ const EMPTY_COURSE_FORM = { name: '', city: '', country: '', layout_name: 'Hoved
 const EMPTY_LAYOUT_FORM = { name: '', slope: '', course_rating: '', par_total: '', tee_name: '' }
 const EMPTY_TEE_FORM = { name: '', slope: '', course_rating: '', par_total: '' }
 
+const parseDecimal = val => parseFloat(String(val).replace(',', '.'))
+
 const emptyHoleRow = (n) => ({ hole_number: n, par: '', stroke_index: '' })
 const emptyHoles = () => Array.from({ length: 18 }, (_, i) => emptyHoleRow(i + 1))
 
@@ -180,8 +182,8 @@ export default function MyCourses() {
     try {
       await api.put(`/courses/local/tees/${editingTee}`, {
         name: teeEditForm.name,
-        slope: teeEditForm.slope !== '' ? parseFloat(teeEditForm.slope) : null,
-        course_rating: teeEditForm.course_rating !== '' ? parseFloat(teeEditForm.course_rating) : null,
+        slope: teeEditForm.slope !== '' ? parseDecimal(teeEditForm.slope) : null,
+        course_rating: teeEditForm.course_rating !== '' ? parseDecimal(teeEditForm.course_rating) : null,
         par_total: teeEditForm.par_total !== '' ? parseInt(teeEditForm.par_total) : null,
       })
       const holes = teeEditForm.holes.map(r => ({
@@ -241,8 +243,8 @@ export default function MyCourses() {
         await api.post(`/courses/${club.data.id}/layouts`, {
           name: courseForm.layout_name,
           tee_name: courseForm.tee_name.trim() || undefined,
-          slope: courseForm.slope ? parseFloat(courseForm.slope) : undefined,
-          course_rating: courseForm.course_rating ? parseFloat(courseForm.course_rating) : undefined,
+          slope: courseForm.slope ? parseDecimal(courseForm.slope) : undefined,
+          course_rating: courseForm.course_rating ? parseDecimal(courseForm.course_rating) : undefined,
           par_total: courseForm.par_total ? parseInt(courseForm.par_total) : undefined,
         })
       }
@@ -271,8 +273,8 @@ export default function MyCourses() {
     await api.post(`/courses/${courseId}/layouts`, {
       name: layoutForm.name,
       tee_name: layoutForm.tee_name || undefined,
-      slope: layoutForm.slope ? parseFloat(layoutForm.slope) : undefined,
-      course_rating: layoutForm.course_rating ? parseFloat(layoutForm.course_rating) : undefined,
+      slope: layoutForm.slope ? parseDecimal(layoutForm.slope) : undefined,
+      course_rating: layoutForm.course_rating ? parseDecimal(layoutForm.course_rating) : undefined,
       par_total: layoutForm.par_total ? parseInt(layoutForm.par_total) : undefined,
     })
     setAddingLayoutTo(null)
@@ -294,8 +296,8 @@ export default function MyCourses() {
     if (!teeForm.name.trim()) return
     await api.post(`/courses/local/${layoutId}/tees`, {
       name: teeForm.name,
-      slope: teeForm.slope ? parseFloat(teeForm.slope) : undefined,
-      course_rating: teeForm.course_rating ? parseFloat(teeForm.course_rating) : undefined,
+      slope: teeForm.slope ? parseDecimal(teeForm.slope) : undefined,
+      course_rating: teeForm.course_rating ? parseDecimal(teeForm.course_rating) : undefined,
       par_total: teeForm.par_total ? parseInt(teeForm.par_total) : undefined,
     })
     setAddingTeeTo(null)
@@ -383,7 +385,7 @@ export default function MyCourses() {
                   <div key={field}>
                     <label className="block text-sm font-medium">{label}</label>
                     <input
-                      type="number"
+                      type={field === 'par_total' ? 'number' : 'text'}
                       inputMode={field === 'par_total' ? 'numeric' : 'decimal'}
                       className="border rounded px-3 py-2 w-full"
                       value={courseForm[field]}
@@ -593,7 +595,7 @@ export default function MyCourses() {
                                   <div key={field}>
                                     <label className="block text-xs font-medium text-gray-600">{label}</label>
                                     <input
-                                      type="number"
+                                      type={field === 'par_total' ? 'number' : 'text'}
                                       inputMode={field === 'par_total' ? 'numeric' : 'decimal'}
                                       className="border rounded px-2 py-1 w-full text-sm"
                                       value={teeEditForm[field]}
@@ -689,7 +691,7 @@ export default function MyCourses() {
                               <div key={field}>
                                 <label className="block text-xs font-medium text-gray-600">{label}</label>
                                 <input
-                                  type="number"
+                                  type={field === 'par_total' ? 'number' : 'text'}
                                   inputMode={field === 'par_total' ? 'numeric' : 'decimal'}
                                   className="border rounded px-2 py-1 w-full text-sm"
                                   value={teeForm[field]}
@@ -744,7 +746,7 @@ export default function MyCourses() {
                       <div key={field}>
                         <label className="block text-xs font-medium text-gray-600">{label}</label>
                         <input
-                          type="number"
+                          type={field === 'par_total' ? 'number' : 'text'}
                           inputMode={field === 'par_total' ? 'numeric' : 'decimal'}
                           className="border rounded px-2 py-1 w-full text-sm"
                           value={layoutForm[field]}
