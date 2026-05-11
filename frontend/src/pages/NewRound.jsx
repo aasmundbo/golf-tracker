@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../api/client'
 import TeeSelector from '../components/TeeSelector'
+import { parseDecimal, formatDecimal } from '../utils/formatters'
 
 export default function NewRound() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const locale = i18n.resolvedLanguage === 'nb' ? 'nb' : 'en'
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [selected, setSelected] = useState(null)
@@ -33,8 +35,8 @@ export default function NewRound() {
       const val = r.data.default_hcp_index
       if (val != null) {
         setDefaultHcp(val)
-        setHcp(prev => prev === '' ? String(val) : prev)
-        setManualData(prev => ({ ...prev, hcp_index: prev.hcp_index === '' ? String(val) : prev.hcp_index }))
+        setHcp(prev => prev === '' ? formatDecimal(val, locale) : prev)
+        setManualData(prev => ({ ...prev, hcp_index: prev.hcp_index === '' ? formatDecimal(val, locale) : prev.hcp_index }))
       }
     }).catch(() => {})
   }, [])
@@ -69,7 +71,7 @@ export default function NewRound() {
   const calcPlayingHcp = (tee, hcpVal) => {
     if (!tee || !hcpVal) return
     const ph = Math.round(
-      parseFloat(hcpVal) * (tee.slope / 113) + (tee.course_rating - (tee.par_total || 72))
+      parseDecimal(hcpVal) * (tee.slope / 113) + (tee.course_rating - (tee.par_total || 72))
     )
     setPlayingHcp(ph)
   }
@@ -106,9 +108,9 @@ export default function NewRound() {
           par_total: manualData.par_total ? parseInt(manualData.par_total) : undefined,
           city: manualData.city || undefined,
           country: manualData.country || undefined,
-          slope: parseFloat(manualData.slope),
-          course_rating: parseFloat(manualData.course_rating),
-          hcp_index: parseFloat(manualData.hcp_index),
+          slope: parseDecimal(manualData.slope),
+          course_rating: parseDecimal(manualData.course_rating),
+          hcp_index: parseDecimal(manualData.hcp_index),
         }
       } else {
         payload = {
@@ -120,11 +122,11 @@ export default function NewRound() {
           slope: selectedTee?.slope_rating || selectedTee?.slope,
           course_rating: selectedTee?.course_rating,
           par_total: selectedTee?.par_total,
-          hcp_index: parseFloat(hcp),
+          hcp_index: parseDecimal(hcp),
         }
       }
       const res = await api.post('/rounds', payload)
-      const usedHcp = parseFloat(manualMode ? manualData.hcp_index : hcp)
+      const usedHcp = parseDecimal(manualMode ? manualData.hcp_index : hcp)
       if (!isNaN(usedHcp) && usedHcp !== defaultHcp) {
         api.patch('/users/me', { default_hcp_index: usedHcp }).catch(() => {})
       }
@@ -140,7 +142,7 @@ export default function NewRound() {
 
   const getInputProps = (f) => {
     if (['slope', 'course_rating', 'hcp_index'].includes(f))
-      return { inputMode: 'decimal', pattern: '[0-9]*' }
+      return { type: 'text', inputMode: 'decimal' }
     if (f === 'par_total')
       return { type: 'number', inputMode: 'numeric', min: '1' }
     return {}
@@ -228,8 +230,7 @@ export default function NewRound() {
         <div>
           <label className="block text-sm font-medium">{t('newRound.yourHandicap')}</label>
           <input
-            type="number"
-            step="0.1"
+            type="text"
             inputMode="decimal"
             className="border rounded px-3 py-2 w-full"
             value={hcp}
@@ -273,8 +274,8 @@ export default function NewRound() {
               )}
               <div className="text-xs text-gray-400 mt-0.5">
                 {course.tee_name && <span>{course.tee_name} · </span>}
-                {course.slope && <span>SR {course.slope}</span>}
-                {course.course_rating && <span> / CR {course.course_rating}</span>}
+                {course.slope && <span>SR {formatDecimal(course.slope, locale)}</span>}
+                {course.course_rating && <span> / CR {formatDecimal(course.course_rating, locale)}</span>}
                 {course.par_total && <span> / Par {course.par_total}</span>}
               </div>
             </button>

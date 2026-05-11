@@ -6,11 +6,13 @@ import HoleCard from '../components/HoleCard'
 import LiveStats from '../components/LiveStats'
 import HoleDataPrompt from '../components/HoleDataPrompt'
 import Scorecard, { ScoreIndicator } from '../components/Scorecard'
+import { formatDecimal } from '../utils/formatters'
 
 export default function ActiveRound() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const locale = i18n.resolvedLanguage === 'nb' ? 'nb' : 'en'
   const [round, setRound] = useState(null)
   const [stats, setStats] = useState(null)
   const [scores, setScores] = useState({})
@@ -133,7 +135,7 @@ export default function ActiveRound() {
         <div>
           <h2 className="font-bold text-lg">{courseLine}</h2>
           <p className="text-sm text-gray-500">
-            {round.tee_name} · {t('activeRound.exactHandicap')} {round.hcp_index} → {t('activeRound.playingHandicap')} {round.playing_handicap}
+            {round.tee_name} · {t('activeRound.exactHandicap')} {formatDecimal(round.hcp_index, locale)} → {t('activeRound.playingHandicap')} {round.playing_handicap}
           </p>
         </div>
         <button

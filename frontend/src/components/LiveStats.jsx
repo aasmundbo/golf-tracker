@@ -1,14 +1,16 @@
 import { useTranslation } from 'react-i18next'
+import { formatDecimal } from '../utils/formatters'
 
 export default function LiveStats({ stats, projection, hcpIndex }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const locale = i18n.resolvedLanguage === 'nb' ? 'nb' : 'en'
   const sign = n => n > 0 ? `+${n}` : String(n)
   const parFmt = n => n === 0 ? 'E' : n > 0 ? `+${n}` : String(n)
   const diff = projection?.projected_differential ?? null
   const hcpColor = diff == null
     ? 'text-gray-400'
     : diff < hcpIndex ? 'text-green-600' : 'text-red-600'
-  const hcpValue = diff == null ? '—' : `~${diff.toFixed(1)}`
+  const hcpValue = diff == null ? '—' : `~${formatDecimal(diff, locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`
   return (
     <div className="grid grid-cols-4 gap-2 bg-white border rounded-xl p-3">
       <div className="text-center">

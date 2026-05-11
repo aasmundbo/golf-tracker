@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../api/client'
+import { parseDecimal, formatDecimal } from '../utils/formatters'
 
 const EMPTY_COURSE_FORM = { name: '', city: '', country: '', layout_name: 'Hovedbane', tee_name: 'Gul', slope: '', course_rating: '', par_total: '' }
 const EMPTY_LAYOUT_FORM = { name: '', slope: '', course_rating: '', par_total: '', tee_name: '' }
 const EMPTY_TEE_FORM = { name: '', slope: '', course_rating: '', par_total: '' }
 
-const parseDecimal = val => parseFloat(String(val).replace(',', '.'))
-
 const emptyHoleRow = (n) => ({ hole_number: n, par: '', stroke_index: '' })
 const emptyHoles = () => Array.from({ length: 18 }, (_, i) => emptyHoleRow(i + 1))
 
 export default function MyCourses() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const locale = i18n.resolvedLanguage === 'nb' ? 'nb' : 'en'
   const [currentUser, setCurrentUser] = useState(null)
   const [courses, setCourses] = useState([])
   const [expandedCourse, setExpandedCourse] = useState(null)
@@ -143,8 +143,8 @@ export default function MyCourses() {
     const rows = holeData[tee.id] ?? await loadHoles(tee.id)
     setTeeEditForm({
       name: tee.name,
-      slope: tee.slope ?? '',
-      course_rating: tee.course_rating ?? '',
+      slope: tee.slope != null ? formatDecimal(tee.slope, locale) : '',
+      course_rating: tee.course_rating != null ? formatDecimal(tee.course_rating, locale) : '',
       par_total: tee.par_total ?? '',
       holes: rows.map(r => ({ ...r })),
     })
@@ -522,7 +522,7 @@ export default function MyCourses() {
                             <div className="flex flex-col gap-0.5">
                               <span className="font-medium">{tee.name}</span>
                               <span className="text-gray-400 text-xs">
-                                Slope {tee.slope ?? '–'} · CR {tee.course_rating ?? '–'} · Par {tee.par_total ?? '–'}
+                                Slope {tee.slope != null ? formatDecimal(tee.slope, locale) : '–'} · CR {tee.course_rating != null ? formatDecimal(tee.course_rating, locale) : '–'} · Par {tee.par_total ?? '–'}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">

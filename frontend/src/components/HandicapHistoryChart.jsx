@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Chart } from 'react-chartjs-2'
+import { formatDecimal } from '../utils/formatters'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -79,14 +80,17 @@ export default function HandicapHistoryChart({ rounds, locale }) {
       },
       y: {
         title: { display: true, text: t('history.chartHandicap'), font: { size: 12 } },
-        ticks: { font: { size: 11 } },
+        ticks: {
+          font: { size: 11 },
+          callback: val => formatDecimal(val, locale === 'nb' ? 'nb' : 'en', { maximumFractionDigits: 1 }),
+        },
       },
     },
     plugins: {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}`,
+          label: ctx => `${ctx.dataset.label}: ${formatDecimal(ctx.parsed.y, locale === 'nb' ? 'nb' : 'en', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`,
         },
       },
     },

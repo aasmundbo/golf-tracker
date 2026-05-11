@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../api/client'
 import HandicapHistoryChart from '../components/HandicapHistoryChart'
+import { formatDecimal } from '../utils/formatters'
 
 export default function History() {
   const { t, i18n } = useTranslation()
@@ -233,9 +234,9 @@ export default function History() {
               <div className="text-xs text-green-700 mt-0.5 font-medium">{r.player_name}</div>
             )}
             <div className="text-sm text-gray-500 mt-1">
-              {t('history.handicap')} {r.hcp_index}{r.projected_hcp != null
+              {t('history.handicap')} {formatDecimal(r.hcp_index, locale)}{r.projected_hcp != null
                 ? <>
-                    {' · '}{t('history.playedTo')} {r.projected_hcp}
+                    {' · '}{t('history.playedTo')} {formatDecimal(r.projected_hcp, locale)}
                     {r.projected_hcp < r.hcp_index
                       ? <span className="text-green-500">↓</span>
                       : r.projected_hcp > r.hcp_index

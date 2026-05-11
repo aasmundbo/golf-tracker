@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/client'
+import { parseDecimal, formatDecimal } from '../utils/formatters'
 
 export default function Settings() {
   const { t, i18n } = useTranslation()
+  const locale = i18n.resolvedLanguage === 'nb' ? 'nb' : 'en'
   const navigate = useNavigate()
 
   const [original, setOriginal] = useState(null)
@@ -26,7 +28,7 @@ export default function Settings() {
         setOriginal(user)
         setName(user.name ?? '')
         setLang(user.preferred_language ?? 'nb')
-        setHcp(user.default_hcp_index != null ? String(user.default_hcp_index) : '')
+        setHcp(user.default_hcp_index != null ? formatDecimal(user.default_hcp_index, locale) : '')
         setScoreDisplay(user.score_display ?? 'netto')
       })
       .catch(() => setError(t('settings.error')))
@@ -41,7 +43,7 @@ export default function Settings() {
     if (name !== original.name) patch.name = name
     if (lang !== original.preferred_language) patch.preferred_language = lang
     if (scoreDisplay !== original.score_display) patch.score_display = scoreDisplay
-    const hcpVal = hcp === '' ? null : parseFloat(hcp)
+    const hcpVal = hcp === '' ? null : parseDecimal(hcp)
     if (hcpVal !== original.default_hcp_index) patch.default_hcp_index = hcpVal
     if (Object.keys(patch).length === 0) return
 
@@ -55,7 +57,7 @@ export default function Settings() {
       setOriginal(updated)
       setName(updated.name ?? '')
       setLang(updated.preferred_language ?? 'nb')
-      setHcp(updated.default_hcp_index != null ? String(updated.default_hcp_index) : '')
+      setHcp(updated.default_hcp_index != null ? formatDecimal(updated.default_hcp_index, locale) : '')
       setScoreDisplay(updated.score_display ?? 'netto')
 
       if (patch.preferred_language) {
@@ -140,8 +142,7 @@ export default function Settings() {
             {t('settings.defaultHcp')}
           </label>
           <input
-            type="number"
-            step="0.1"
+            type="text"
             inputMode="decimal"
             value={hcp}
             onChange={e => setHcp(e.target.value)}
