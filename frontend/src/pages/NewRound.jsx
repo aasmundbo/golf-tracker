@@ -34,6 +34,7 @@ export default function NewRound() {
       if (val != null) {
         setDefaultHcp(val)
         setHcp(prev => prev === '' ? String(val) : prev)
+        setManualData(prev => ({ ...prev, hcp_index: prev.hcp_index === '' ? String(val) : prev.hcp_index }))
       }
     }).catch(() => {})
   }, [])
