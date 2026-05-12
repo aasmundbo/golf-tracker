@@ -46,15 +46,15 @@ export default function NewRound() {
   }, [])
 
   useEffect(() => {
+    if (selectedTee && hcp) calcPlayingHcp(selectedTee, hcp)
+  }, [selectedTee, hcp])
+
+  useEffect(() => {
     api.get('/users/me').then(r => {
       const val = r.data.default_hcp_index
       if (val != null) {
         setDefaultHcp(val)
-        setHcp(prev => {
-          const next = prev === '' ? formatDecimal(val, locale) : prev
-          setSelectedTee(tee => { if (tee) calcPlayingHcp(tee, next); return tee })
-          return next
-        })
+        setHcp(prev => prev === '' ? formatDecimal(val, locale) : prev)
         setManualData(prev => ({ ...prev, hcp_index: prev.hcp_index === '' ? formatDecimal(val, locale) : prev.hcp_index }))
       }
       setPreferredTeeGender(r.data.preferred_tee_gender ?? null)
