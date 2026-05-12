@@ -138,38 +138,135 @@ function UsersTab() {
       )}
       {!loading && !error && visibleUsers.length > 0 && (
         <ul className="space-y-2">
-          {visibleUsers.map(user => {
-            const days = daysSince(user.last_login_at)
-            return (
-              <li
-                key={user.id}
-                className="flex items-center justify-between bg-white rounded-lg border border-gray-200 px-4 py-3"
-              >
-                <div>
-                  <p className="font-medium text-gray-900">{user.name || '—'}</p>
-                  <p className="text-sm text-gray-500">{user.email}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    <span className="capitalize">{user.role}</span>
-                    {days !== null && (
-                      <span className="ml-2">· {t('admin.daysAgo', { count: days })}</span>
-                    )}
-                    {days === null && <span className="ml-2">· {t('admin.neverActive')}</span>}
-                  </p>
-                </div>
-                {user.role !== 'admin' && (
-                  <button
-                    onClick={() => handleDelete(user)}
-                    className="text-sm text-red-600 hover:text-red-800 font-medium"
-                  >
-                    {t('admin.delete')}
-                  </button>
-                )}
-              </li>
-            )
-          })}
+          {visibleUsers.map(user => (
+            <UserCard
+              key={user.id}
+              user={user}
+              onDelete={handleDelete}
+              onSave={u => { setUsers(prev => prev.map(x => x.id === u.id ? { ...x, ...u } : x)) }}
+            />
+          ))}
         </ul>
       )}
     </div>
+  )
+}
+
+function UserCard({ user, onDelete, onSave }) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState({
+    name: user.name || '',
+    preferred_language: user.preferred_language || 'nb',
+    score_display: user.score_display || 'netto',
+    default_hcp_index: user.default_hcp_index != null ? String(user.default_hcp_index) : '',
+    preferred_tee_gender: user.preferred_tee_gender || '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const days = daysSince(user.last_login_at)
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const payload = {
+        name: form.name || undefined,
+        preferred_language: form.preferred_language || undefined,
+        score_display: form.score_display || undefined,
+        default_hcp_index: form.default_hcp_index !== '' ? parseFloat(form.default_hcp_index.replace(',', '.')) : undefined,
+        preferred_tee_gender: form.preferred_tee_gender || null,
+      }
+      const res = await api.patch(`/users/${user.id}`, payload)
+      onSave(res.data)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch { /* ignore */ }
+    setSaving(false)
+  }
+
+  return (
+    <li className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 active:bg-gray-100 transition-colors"
+        onClick={() => setOpen(v => !v)}
+      >
+        <div>
+          <p className="font-medium text-gray-900">{user.name || '—'}</p>
+          <p className="text-sm text-gray-500">{user.email}</p>
+          <p className="text-xs text-gray-400 mt-0.5">
+            <span className="capitalize">{user.role}</span>
+            {days !== null
+              ? <span className="ml-2">· {t('admin.daysAgo', { count: days })}</span>
+              : <span className="ml-2">· {t('admin.neverActive')}</span>}
+          </p>
+        </div>
+        <span className="text-gray-400 text-lg ml-2">{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div className="border-t border-gray-100 px-4 py-3 space-y-3 bg-gray-50">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">{t('settings.name')}</label>
+            <input className="border rounded px-3 py-1.5 w-full text-sm" value={form.name}
+              onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{t('settings.language')}</label>
+              <select className="border rounded px-2 py-1.5 w-full text-sm bg-white"
+                value={form.preferred_language}
+                onChange={e => setForm(f => ({ ...f, preferred_language: e.target.value }))}>
+                <option value="nb">Norsk</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{t('settings.scoreDisplay')}</label>
+              <select className="border rounded px-2 py-1.5 w-full text-sm bg-white"
+                value={form.score_display}
+                onChange={e => setForm(f => ({ ...f, score_display: e.target.value }))}>
+                <option value="netto">Netto</option>
+                <option value="brutto">Brutto</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{t('settings.defaultHcp')}</label>
+              <input className="border rounded px-3 py-1.5 w-full text-sm" type="text" inputMode="decimal"
+                value={form.default_hcp_index}
+                onChange={e => setForm(f => ({ ...f, default_hcp_index: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{t('settings.teeGender')}</label>
+              <select className="border rounded px-2 py-1.5 w-full text-sm bg-white"
+                value={form.preferred_tee_gender}
+                onChange={e => setForm(f => ({ ...f, preferred_tee_gender: e.target.value }))}>
+                <option value="">{t('settings.teeGenderNone')}</option>
+                <option value="herre">Herre</option>
+                <option value="dame">Dame</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            {user.role !== 'admin' && (
+              <button onClick={() => onDelete(user)}
+                className="text-sm text-red-600 hover:text-red-800 font-medium">
+                {t('admin.delete')}
+              </button>
+            )}
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="ml-auto bg-green-700 text-white px-4 py-1.5 rounded text-sm font-medium disabled:opacity-50"
+            >
+              {saved ? t('settings.saved') : saving ? t('settings.saving') : t('settings.save')}
+            </button>
+          </div>
+        </div>
+      )}
+    </li>
   )
 }
 // ── Stats tab ──────────────────────────────────────────────────────────────
