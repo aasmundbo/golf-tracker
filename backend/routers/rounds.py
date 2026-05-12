@@ -48,7 +48,7 @@ async def start_round(
     playing_hcp = calculate_playing_handicap(
         data.hcp_index, data.slope, data.course_rating, data.par_total or 72
     )
-    round_data = data.model_dump()
+    round_data = data.model_dump(exclude={'external_api_id'})
 
     if data.course_source == 'on_the_fly' and not data.tee_id:
         # Resolve club name: prefer explicit club_name, fall back to course_name
