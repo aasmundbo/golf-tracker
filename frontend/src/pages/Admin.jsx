@@ -244,8 +244,8 @@ function UserCard({ user, onDelete, onSave }) {
                 value={form.preferred_tee_gender}
                 onChange={e => setForm(f => ({ ...f, preferred_tee_gender: e.target.value }))}>
                 <option value="">{t('settings.teeGenderNone')}</option>
-                <option value="herre">Herre</option>
-                <option value="dame">Dame</option>
+                <option value="herre">{t('common.genderMale')}</option>
+                <option value="dame">{t('common.genderFemale')}</option>
               </select>
             </div>
           </div>

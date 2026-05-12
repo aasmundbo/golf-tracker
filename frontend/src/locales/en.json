@@ -226,5 +226,10 @@
     "neverActive": "never played"
   },
   "logout": "Log out",
-  "gross": "Gross"
+  "gross": "Gross",
+  "common": {
+    "genderMale": "Men",
+    "genderFemale": "Women",
+    "genderOther": "Other"
+  }
 }

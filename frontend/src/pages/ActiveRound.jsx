@@ -235,7 +235,7 @@ export default function ActiveRound() {
 
       {showHcpEdit && (
         <div className="bg-gray-50 border rounded p-3 flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-700">{t('activeRound.changeHandicapLabel')}</label>
+          <label className="text-sm font-medium text-gray-700">{t('newRound.yourHandicap')}</label>
           <input
             type="number"
             step="0.1"

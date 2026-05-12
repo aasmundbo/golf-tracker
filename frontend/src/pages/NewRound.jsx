@@ -183,8 +183,8 @@ export default function NewRound() {
               onChange={e => setManualData(d => ({ ...d, tee_gender: e.target.value }))}
             >
               <option value="">—</option>
-              <option value="herre">Herre</option>
-              <option value="dame">Dame</option>
+              <option value="herre">{t('common.genderMale')}</option>
+              <option value="dame">{t('common.genderFemale')}</option>
             </select>
           </div>
         </div>

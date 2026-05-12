@@ -577,10 +577,10 @@ export default function MyCourses() {
                               <div className="flex items-center gap-1.5">
                                 <span className="font-medium">{tee.name}</span>
                                 {tee.gender === 'herre' && (
-                                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">Herre</span>
+                                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">{t('common.genderMale')}</span>
                                 )}
                                 {tee.gender === 'dame' && (
-                                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-pink-100 text-pink-700 font-medium">Dame</span>
+                                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-pink-100 text-pink-700 font-medium">{t('common.genderFemale')}</span>
                                 )}
                               </div>
                               <span className="text-gray-400 text-xs">

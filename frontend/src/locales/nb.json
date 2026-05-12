@@ -226,5 +226,10 @@
     "neverActive": "aldri spilt"
   },
   "logout": "Logg ut",
-  "gross": "Brutto"
+  "gross": "Brutto",
+  "common": {
+    "genderMale": "Herre",
+    "genderFemale": "Dame",
+    "genderOther": "Øvrige"
+  }
 }

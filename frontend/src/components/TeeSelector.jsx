@@ -22,7 +22,7 @@ export default function TeeSelector({ courseDetail, preferredGender, onSelect })
   const otherTees = preferredGender ? tees.filter(t => t.gender !== preferredGender) : tees
   const usePreference = preferredTees.length > 0
 
-  const genderLabel = gender => gender === 'herre' ? 'Herre' : gender === 'dame' ? 'Dame' : 'Øvrige'
+  const genderLabel = gender => gender === 'herre' ? t('common.genderMale') : gender === 'dame' ? t('common.genderFemale') : t('common.genderOther')
 
   const renderTeeButton = (tee, i) => (
     <button key={i} onClick={() => onSelect(tee)}
@@ -47,19 +47,19 @@ export default function TeeSelector({ courseDetail, preferredGender, onSelect })
           <div className="space-y-3">
             {herreTees.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Herre</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('common.genderMale')}</p>
                 <div className="grid gap-2">{herreTees.map(renderTeeButton)}</div>
               </div>
             )}
             {dameTees.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Dame</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('common.genderFemale')}</p>
                 <div className="grid gap-2">{dameTees.map(renderTeeButton)}</div>
               </div>
             )}
             {ungroupedTees.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Øvrige</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('common.genderOther')}</p>
                 <div className="grid gap-2">{ungroupedTees.map(renderTeeButton)}</div>
               </div>
             )}
@@ -98,7 +98,7 @@ export default function TeeSelector({ courseDetail, preferredGender, onSelect })
                 const ungrouped = otherTees.filter(t => t.gender !== 'herre' && t.gender !== 'dame')
                 return ungrouped.length > 0 ? (
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Øvrige</p>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('common.genderOther')}</p>
                     <div className="grid gap-2">{ungrouped.map(renderTeeButton)}</div>
                   </div>
                 ) : null
