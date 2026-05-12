@@ -107,7 +107,10 @@ export default function ActiveRound() {
     if (isNaN(val)) return
     setHcpSaving(true)
     try {
-      await api.patch(`/rounds/${id}/hcp`, { hcp_index: val })
+      await Promise.all([
+        api.patch(`/rounds/${id}/hcp`, { hcp_index: val }),
+        api.patch('/users/me', { default_hcp_index: val }),
+      ])
       setShowHcpEdit(false)
       setNewHcp('')
       await loadRound()
