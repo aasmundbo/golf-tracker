@@ -332,11 +332,24 @@ export default function NewRound() {
               {course.club_name && course.course_name !== course.club_name && (
                 <div className="text-xs text-gray-500">{course.course_name}</div>
               )}
-              <div className="text-xs text-gray-400 mt-0.5">
-                {course.tee_name && <span>{course.tee_name} · </span>}
-                {course.slope && <span>SR {formatDecimal(course.slope, locale)}</span>}
-                {course.course_rating && <span> / CR {formatDecimal(course.course_rating, locale)}</span>}
-                {course.par_total && <span> / Par {course.par_total}</span>}
+              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                {course.tee_name && (
+                  <span className="text-xs text-gray-400">{course.tee_name}</span>
+                )}
+                {course.tee_gender === 'herre' && (
+                  <span className="text-xs px-1.5 py-0.5 rounded-full border border-blue-300 bg-blue-50 text-blue-700 font-medium">{t('common.genderMale')}</span>
+                )}
+                {course.tee_gender === 'dame' && (
+                  <span className="text-xs px-1.5 py-0.5 rounded-full border border-pink-300 bg-pink-50 text-pink-700 font-medium">{t('common.genderFemale')}</span>
+                )}
+                {(course.slope || course.course_rating || course.par_total) && (
+                  <span className="text-xs text-gray-400">
+                    {course.tee_name ? '· ' : ''}
+                    {course.slope && `SR ${formatDecimal(course.slope, locale)}`}
+                    {course.course_rating && ` / CR ${formatDecimal(course.course_rating, locale)}`}
+                    {course.par_total && ` / Par ${course.par_total}`}
+                  </span>
+                )}
               </div>
             </button>
           ))}

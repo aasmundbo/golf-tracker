@@ -164,7 +164,8 @@ async def get_recent_courses(
         .subquery()
     )
     result = await db.execute(
-        select(Round)
+        select(Round, LocalTee.gender)
+        .outerjoin(LocalTee, Round.tee_id == LocalTee.id)
         .where(Round.id.in_(select(subq.c.max_id)))
         .order_by(Round.started_at.desc())
         .limit(2)
@@ -175,11 +176,12 @@ async def get_recent_courses(
             "course_name": r.course_name,
             "tee_name": r.tee_name,
             "tee_id": r.tee_id,
+            "tee_gender": gender,
             "slope": r.slope,
             "course_rating": r.course_rating,
             "par_total": r.par_total,
         }
-        for r in result.scalars().all()
+        for r, gender in result.all()
     ]
 
 @router.get("/{round_id}")
