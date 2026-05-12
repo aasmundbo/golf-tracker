@@ -18,6 +18,8 @@
     "startWithoutData": "Start without course data",
     "startWithoutDataTitle": "Start without course data",
     "recentlyPlayed": "Recently played",
+    "activeRounds": "Active rounds",
+    "resumeRound": "Resume",
     "failedToStart": "Failed to start round",
     "manualLabels": {
       "club_name": "Club",

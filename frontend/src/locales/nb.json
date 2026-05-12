@@ -18,6 +18,8 @@
     "startWithoutData": "Start uten banedata",
     "startWithoutDataTitle": "Start uten banedata",
     "recentlyPlayed": "Nylig spilte",
+    "activeRounds": "Aktive runder",
+    "resumeRound": "Fortsett",
     "failedToStart": "Feil: kunne ikke starte runde",
     "manualLabels": {
       "club_name": "Klubb",
