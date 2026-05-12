@@ -36,7 +36,7 @@
       "city": "Where is the course located (optional)",
       "country": "Optional. E.g. «Norway».",
       "course_name": "Used if the club has multiple courses, e.g. «North». Optional.",
-      "tee_name": "Name of the tee, e.g. «Bårds Gul» or «51».",
+      "tee_name": "Name of the tee, e.g. «Gul» or «51».",
       "par_total": "Total par for the course — usually 70–73 for 18 holes.",
       "slope": "Slope Rating — course difficulty for amateur players (85–155). Found on the scorecard.",
       "course_rating": "Course Rating (CR) — expected score for a scratch player. Found on the scorecard.",

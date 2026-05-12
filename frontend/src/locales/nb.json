@@ -36,7 +36,7 @@
       "city": "Hvor ligger banen (valgfritt)",
       "country": "Valgfritt. F.eks. «Norge».",
       "course_name": "Brukes hvis klubben har flere baner, f.eks. «Nordre». Valgfritt.",
-      "tee_name": "Navn på testedet, f.eks. «Bårds Gul» eller «51».",
+      "tee_name": "Navn på testedet, f.eks. «Gul» eller «51».",
       "par_total": "Samlet par for banen — vanligvis 70–73 for 18 hull.",
       "slope": "Slope Rating — banens vanskelighetsgrad for amatørspillere (85–155). Finnes på scorekortet.",
       "course_rating": "Course Rating (CR) — forventet score for en scratch-spiller. Finnes på scorekortet.",
