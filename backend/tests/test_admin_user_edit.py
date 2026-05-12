@@ -1,8 +1,18 @@
 """Tests for admin user editing and listing."""
+import types
 import pytest
 from httpx import AsyncClient
+from main import app
+from auth import get_current_user
 import database
 from models.user import User, UserRole
+
+_regular_user = types.SimpleNamespace(
+    id=99, email="regular@test.com", name="Regular", role=UserRole.user,
+    password_hash=None, google_sub=None, preferred_language="nb",
+    score_display="netto", default_hcp_index=None,
+    preferred_tee_gender=None, last_login_at=None,
+)
 
 
 async def _seed_user(name: str = "Test User", email: str = "test@example.com") -> int:
@@ -70,3 +80,18 @@ async def test_list_users_search(client):
     assert resp.status_code == 200
     data = resp.json()
     assert any(u["display_name"] == "Findable Person" for u in data)
+
+
+async def test_non_admin_cannot_list_users(client):
+    """Regular users cannot list all users."""
+    app.dependency_overrides[get_current_user] = lambda: _regular_user
+    resp = await client.get("/api/users")
+    assert resp.status_code == 403
+
+
+async def test_non_admin_cannot_patch_other_user(client):
+    """Regular users cannot patch another user's settings."""
+    user_id = await _seed_user("Target User", "target@example.com")
+    app.dependency_overrides[get_current_user] = lambda: _regular_user
+    resp = await client.patch(f"/api/users/{user_id}", json={"name": "Hacked"})
+    assert resp.status_code == 403

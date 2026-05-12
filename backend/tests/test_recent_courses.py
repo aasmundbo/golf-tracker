@@ -1,6 +1,21 @@
 """Tests for GET /api/rounds/recent-courses — per-user filtering and dedup."""
+import types
 import pytest
 from httpx import AsyncClient
+from main import app
+from auth import get_current_user
+from models.user import UserRole
+
+def _make_user(id_: int):
+    return types.SimpleNamespace(
+        id=id_, email=f"user{id_}@test.com", name=f"User {id_}",
+        role=UserRole.user, password_hash=None, google_sub=None,
+        preferred_language="nb", score_display="netto",
+        default_hcp_index=None, preferred_tee_gender=None, last_login_at=None,
+    )
+
+_user_a = _make_user(10)
+_user_b = _make_user(11)
 
 
 async def _create_round(client: AsyncClient, course_name: str, tee_name: str = "Default") -> dict:
@@ -77,3 +92,28 @@ async def test_recent_courses_returns_expected_fields(client):
     assert "slope" in entry
     assert "course_rating" in entry
     assert "par_total" in entry
+
+
+async def test_recent_courses_isolated_per_user(client):
+    """User A's recent courses do not appear in User B's results."""
+    app.dependency_overrides[get_current_user] = lambda: _user_a
+    await _create_round(client, "User A Course")
+
+    app.dependency_overrides[get_current_user] = lambda: _user_b
+    recent = (await client.get("/api/rounds/recent-courses")).json()
+    course_names = [r["course_name"] for r in recent]
+    assert "User A Course" not in course_names
+
+
+async def test_recent_courses_shows_own_after_isolation(client):
+    """User B sees their own courses, not User A's."""
+    app.dependency_overrides[get_current_user] = lambda: _user_a
+    await _create_round(client, "Only A Course")
+
+    app.dependency_overrides[get_current_user] = lambda: _user_b
+    await _create_round(client, "Only B Course")
+
+    recent = (await client.get("/api/rounds/recent-courses")).json()
+    course_names = [r["course_name"] for r in recent]
+    assert "Only B Course" in course_names
+    assert "Only A Course" not in course_names
