@@ -27,8 +27,19 @@
       "tee_name": "Tee-navn",
       "par_total": "Banens par",
       "slope": "Slope",
-      "course_rating": "Course rating",
+      "course_rating": "Course Rating (CR)",
       "hcp_index": "Ditt handicap"
+    },
+    "manualHints": {
+      "club_name": "Navn på golfklubben du spiller på.",
+      "city": "Valgfritt. Hjelper deg å finne runden igjen.",
+      "country": "Valgfritt. F.eks. «Norge».",
+      "course_name": "Brukes hvis klubben har flere baner, f.eks. «Nordre». Valgfritt.",
+      "tee_name": "Navn eller farge på testedet du spiller fra, f.eks. «Gul». Valgfritt.",
+      "par_total": "Samlet par for banen — vanligvis 70–73 for 18 hull.",
+      "slope": "Slope Rating — banens vanskelighetsgrad for amatørspillere (85–155). Finnes på scorekortet.",
+      "course_rating": "Course Rating (CR) — forventet score for en scratch-spiller. Finnes på scorekortet.",
+      "hcp_index": "Handicapindeksen din. Brukes til å beregne spillehandicap."
     }
   },
   "activeRound": {

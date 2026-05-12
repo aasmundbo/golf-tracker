@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../api/client'
 import TeeSelector from '../components/TeeSelector'
+import FieldHint from '../components/FieldHint'
 import { parseDecimal, formatDecimal } from '../utils/formatters'
 
 export default function NewRound() {
@@ -156,7 +157,10 @@ export default function NewRound() {
         <h2 className="text-xl font-bold">{t('newRound.startWithoutDataTitle')}</h2>
         {MANUAL_FIELDS.map(f => (
           <div key={f}>
-            <label className="block text-sm font-medium">{t(`newRound.manualLabels.${f}`)}</label>
+            <label className="block text-sm font-medium">
+              {t(`newRound.manualLabels.${f}`)}
+              <FieldHint text={t(`newRound.manualHints.${f}`)} />
+            </label>
             <input
               className="border rounded px-3 py-2 w-full"
               value={manualData[f]}
