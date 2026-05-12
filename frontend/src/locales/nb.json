@@ -198,7 +198,22 @@
     "confirmDelete": "Slett denne brukeren?",
     "noUsers": "Ingen brukere funnet.",
     "error": "Klarte ikke laste brukere",
-    "deleteError": "Klarte ikke slette bruker"
+    "deleteError": "Klarte ikke slette bruker",
+    "tab_stats": "Statistikk",
+    "tab_users": "Brukere",
+    "searchUsers": "Søk på navn…",
+    "totalRounds": "Runder spilt",
+    "totalUsers": "Brukere",
+    "avgRoundsPerUser": "Snitt runder/bruker",
+    "completionRate": "Fullføringsgrad",
+    "topCourses": "Mest spilte baner",
+    "topUsers": "Mest aktive brukere",
+    "roundsBySource": "Runder per banetype",
+    "inactiveUsers": "Inaktive brukere",
+    "inactiveUsersDesc": "Ingen runde siste 60 dager",
+    "sourceLocal": "Lokal bane",
+    "sourceApi": "GolfCourseAPI",
+    "sourceOnTheFly": "Manuelt lagt inn"
   },
   "logout": "Logg ut",
   "gross": "Brutto"

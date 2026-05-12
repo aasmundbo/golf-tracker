@@ -198,7 +198,22 @@
     "confirmDelete": "Delete this user?",
     "noUsers": "No users found.",
     "error": "Failed to load users",
-    "deleteError": "Failed to delete user"
+    "deleteError": "Failed to delete user",
+    "tab_stats": "Statistics",
+    "tab_users": "Users",
+    "searchUsers": "Search by name…",
+    "totalRounds": "Rounds played",
+    "totalUsers": "Users",
+    "avgRoundsPerUser": "Avg rounds / user",
+    "completionRate": "Completion rate",
+    "topCourses": "Most played courses",
+    "topUsers": "Most active users",
+    "roundsBySource": "Rounds by course type",
+    "inactiveUsers": "Inactive users",
+    "inactiveUsersDesc": "No round in the last 60 days",
+    "sourceLocal": "Local course",
+    "sourceApi": "GolfCourseAPI",
+    "sourceOnTheFly": "Manual entry"
   },
   "logout": "Log out",
   "gross": "Gross"
