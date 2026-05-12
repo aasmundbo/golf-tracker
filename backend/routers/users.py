@@ -20,6 +20,7 @@ class UserResponse(BaseModel):
     preferred_language: str
     score_display: str
     default_hcp_index: Optional[float]
+    preferred_tee_gender: Optional[str] = None
     google_sub: Optional[str]
 
     class Config:
@@ -31,6 +32,7 @@ class UserPatch(BaseModel):
     preferred_language: Optional[str] = None
     default_hcp_index: Optional[float] = None
     score_display: Optional[Literal["netto", "brutto"]] = None
+    preferred_tee_gender: Optional[str] = None
 
 
 class UserSearchResult(BaseModel):
@@ -68,6 +70,8 @@ async def patch_me(
         user.score_display = data.score_display
     if data.default_hcp_index is not None:
         user.default_hcp_index = data.default_hcp_index
+    if 'preferred_tee_gender' in data.model_fields_set:
+        user.preferred_tee_gender = data.preferred_tee_gender
     await session.commit()
     await session.refresh(user)
     return user

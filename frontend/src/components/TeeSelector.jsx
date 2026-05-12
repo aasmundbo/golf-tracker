@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatDecimal } from '../utils/formatters'
 
-export default function TeeSelector({ courseDetail, onSelect }) {
+export default function TeeSelector({ courseDetail, preferredGender, onSelect }) {
   const { t, i18n } = useTranslation()
   const locale = i18n.resolvedLanguage === 'nb' ? 'nb' : 'en'
+  const [showAll, setShowAll] = useState(false)
   const course = courseDetail?.course
   if (!course) return null
 
@@ -16,10 +18,11 @@ export default function TeeSelector({ courseDetail, onSelect }) {
     }
   }
 
-  const herreTees = tees.filter(t => t.gender === 'herre')
-  const dameTees = tees.filter(t => t.gender === 'dame')
-  const otherTees = tees.filter(t => t.gender !== 'herre' && t.gender !== 'dame')
-  const useGroups = herreTees.length > 0 || dameTees.length > 0
+  const preferredTees = preferredGender ? tees.filter(t => t.gender === preferredGender) : []
+  const otherTees = preferredGender ? tees.filter(t => t.gender !== preferredGender) : tees
+  const usePreference = preferredTees.length > 0
+
+  const genderLabel = gender => gender === 'herre' ? 'Herre' : gender === 'dame' ? 'Dame' : 'Øvrige'
 
   const renderTeeButton = (tee, i) => (
     <button key={i} onClick={() => onSelect(tee)}
@@ -31,33 +34,75 @@ export default function TeeSelector({ courseDetail, onSelect }) {
     </button>
   )
 
+  if (!usePreference) {
+    const herreTees = tees.filter(t => t.gender === 'herre')
+    const dameTees = tees.filter(t => t.gender === 'dame')
+    const ungroupedTees = tees.filter(t => t.gender !== 'herre' && t.gender !== 'dame')
+    const useGroups = herreTees.length > 0 || dameTees.length > 0
+
+    return (
+      <div>
+        <label className="block text-sm font-medium mb-1">{t('teeSelector.label')}</label>
+        {useGroups ? (
+          <div className="space-y-3">
+            {herreTees.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Herre</p>
+                <div className="grid gap-2">{herreTees.map(renderTeeButton)}</div>
+              </div>
+            )}
+            {dameTees.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Dame</p>
+                <div className="grid gap-2">{dameTees.map(renderTeeButton)}</div>
+              </div>
+            )}
+            {ungroupedTees.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Øvrige</p>
+                <div className="grid gap-2">{ungroupedTees.map(renderTeeButton)}</div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="grid gap-2">{tees.map(renderTeeButton)}</div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div>
       <label className="block text-sm font-medium mb-1">{t('teeSelector.label')}</label>
-      {useGroups ? (
-        <div className="space-y-3">
-          {herreTees.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Herre</p>
-              <div className="grid gap-2">{herreTees.map(renderTeeButton)}</div>
-            </div>
-          )}
-          {dameTees.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Dame</p>
-              <div className="grid gap-2">{dameTees.map(renderTeeButton)}</div>
-            </div>
-          )}
-          {otherTees.length > 0 && (
+      <div className="space-y-3">
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            {genderLabel(preferredGender)}
+          </p>
+          <div className="grid gap-2">{preferredTees.map(renderTeeButton)}</div>
+        </div>
+        {otherTees.length > 0 && (
+          showAll ? (
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Øvrige</p>
               <div className="grid gap-2">{otherTees.map(renderTeeButton)}</div>
+              <button
+                onClick={() => setShowAll(false)}
+                className="text-sm text-green-700 underline mt-1"
+              >
+                {t('teeSelector.showFewer')}
+              </button>
             </div>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-2">{tees.map(renderTeeButton)}</div>
-      )}
+          ) : (
+            <button
+              onClick={() => setShowAll(true)}
+              className="text-sm text-green-700 underline"
+            >
+              {t('teeSelector.showMore')}
+            </button>
+          )
+        )}
+      </div>
     </div>
   )
 }

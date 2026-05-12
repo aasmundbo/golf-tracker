@@ -21,4 +21,5 @@ class User(Base):
     preferred_language = Column(String, nullable=False, default="nb")
     score_display = Column(String, nullable=False, default="netto")
     default_hcp_index = Column(Float, nullable=True)
+    preferred_tee_gender = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

@@ -127,7 +127,9 @@
     "save": "Lagre"
   },
   "teeSelector": {
-    "label": "Velg tee"
+    "label": "Velg tee",
+    "showMore": "Vis flere…",
+    "showFewer": "Vis færre"
   },
   "scorecard": {
     "playingToHcp": "Spiller til hcp ~{{diff}}",
@@ -173,6 +175,8 @@
     "hintLanguage": "Endrer språket i hele appen. Trer i kraft når du lagrer.",
     "hintScoreDisplay": "\"Netto\" viser poeng og birdie-/bogie-grafikk for ditt handicap. \"Brutto\" viser for faktiske slag.",
     "hintDefaultHcp": "Fylles inn automatisk når du starter ny runde. Oppdateres hver gang du bruker et annet handicap.",
+    "teeGender": "Tee-kategori",
+    "teeGenderNone": "Ingen preferanse",
     "hintTeeGender": "Denne kategorien vises øverst ved ny runde."
   },
   "admin": {

@@ -15,6 +15,7 @@ export default function Settings() {
   const [lang, setLang] = useState('nb')
   const [hcp, setHcp] = useState('')
   const [scoreDisplay, setScoreDisplay] = useState('netto')
+  const [teeGender, setTeeGender] = useState('')
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -31,6 +32,7 @@ export default function Settings() {
         setLang(user.preferred_language ?? 'nb')
         setHcp(user.default_hcp_index != null ? formatDecimal(user.default_hcp_index, locale) : '')
         setScoreDisplay(user.score_display ?? 'netto')
+        setTeeGender(user.preferred_tee_gender ?? '')
       })
       .catch(() => setError(t('settings.error')))
       .finally(() => setLoading(false))
@@ -46,6 +48,7 @@ export default function Settings() {
     if (scoreDisplay !== original.score_display) patch.score_display = scoreDisplay
     const hcpVal = hcp === '' ? null : parseDecimal(hcp)
     if (hcpVal !== original.default_hcp_index) patch.default_hcp_index = hcpVal
+    if (teeGender !== (original.preferred_tee_gender ?? '')) patch.preferred_tee_gender = teeGender || null
     if (Object.keys(patch).length === 0) return
 
     setSaving(true)
@@ -60,6 +63,7 @@ export default function Settings() {
       setLang(updated.preferred_language ?? 'nb')
       setHcp(updated.default_hcp_index != null ? formatDecimal(updated.default_hcp_index, locale) : '')
       setScoreDisplay(updated.score_display ?? 'netto')
+      setTeeGender(updated.preferred_tee_gender ?? '')
 
       if (patch.preferred_language) {
         i18n.changeLanguage(patch.preferred_language)
@@ -137,6 +141,22 @@ export default function Settings() {
           >
             <option value="netto">{t('settings.scoreDisplayNetto')}</option>
             <option value="brutto">{t('settings.scoreDisplayBrutto')}</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('settings.teeGender')}
+            <FieldHint text={t('settings.hintTeeGender')} />
+          </label>
+          <select
+            value={teeGender}
+            onChange={e => setTeeGender(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+          >
+            <option value="">{t('settings.teeGenderNone')}</option>
+            <option value="herre">Herre</option>
+            <option value="dame">Dame</option>
           </select>
         </div>
 

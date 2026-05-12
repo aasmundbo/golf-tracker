@@ -15,6 +15,7 @@ export default function NewRound() {
   const [selectedTee, setSelectedTee] = useState(null)
   const [hcp, setHcp] = useState('')
   const [defaultHcp, setDefaultHcp] = useState(null)
+  const [preferredTeeGender, setPreferredTeeGender] = useState(null)
   const [playingHcp, setPlayingHcp] = useState(null)
   const [manualMode, setManualMode] = useState(false)
   const [manualData, setManualData] = useState({
@@ -38,6 +39,7 @@ export default function NewRound() {
         setHcp(prev => prev === '' ? formatDecimal(val, locale) : prev)
         setManualData(prev => ({ ...prev, hcp_index: prev.hcp_index === '' ? formatDecimal(val, locale) : prev.hcp_index }))
       }
+      setPreferredTeeGender(r.data.preferred_tee_gender ?? null)
     }).catch(() => {})
   }, [])
 
@@ -223,6 +225,7 @@ export default function NewRound() {
       {courseDetail && (
         <TeeSelector
           courseDetail={courseDetail}
+          preferredGender={preferredTeeGender}
           onSelect={tee => { setSelectedTee(tee); calcPlayingHcp(tee, hcp) }}
         />
       )}

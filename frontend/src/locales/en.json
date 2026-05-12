@@ -127,7 +127,9 @@
     "save": "Save"
   },
   "teeSelector": {
-    "label": "Select tee"
+    "label": "Select tee",
+    "showMore": "Show more…",
+    "showFewer": "Show fewer"
   },
   "scorecard": {
     "playingToHcp": "Playing to hcp ~{{diff}}",
@@ -173,6 +175,8 @@
     "hintLanguage": "Changes the language throughout the app. Takes effect when you save.",
     "hintScoreDisplay": "\"Netto\" shows score and birdie/bogey graphics for your handicap. \"Brutto\" shows for actual strokes.",
     "hintDefaultHcp": "Filled in automatically when you start a new round. Updated each time you use a different handicap.",
+    "teeGender": "Tee category",
+    "teeGenderNone": "No preference",
     "hintTeeGender": "This category appears at the top when starting a new round."
   },
   "admin": {
