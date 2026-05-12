@@ -159,7 +159,7 @@
     "title": "Innstillinger",
     "name": "Navn",
     "language": "Språk",
-    "defaultHcp": "Standard handicapindeks",
+    "defaultHcp": "Ditt handicap",
     "scoreDisplay": "Scoredekorasjoner",
     "scoreDisplayNetto": "Netto (justert for handicapslag)",
     "scoreDisplayBrutto": "Brutto (bruttopoeng mot par)",
@@ -169,7 +169,11 @@
     "error": "Lagring feilet",
     "deleteAccount": "Slett konto",
     "confirmDeleteAccount": "Er du sikker på at du vil slette kontoen din? Dette kan ikke angres.",
-    "deleteAccountError": "Klarte ikke slette konto"
+    "deleteAccountError": "Klarte ikke slette konto",
+    "hintLanguage": "Endrer språket i hele appen. Trer i kraft når du lagrer.",
+    "hintScoreDisplay": "\"Netto\" viser poeng og birdie-/bogie-grafikk for ditt handicap. \"Brutto\" viser for faktiske slag.",
+    "hintDefaultHcp": "Fylles inn automatisk når du starter ny runde. Oppdateres hver gang du bruker et annet handicap.",
+    "hintTeeGender": "Denne kategorien vises øverst ved ny runde."
   },
   "admin": {
     "title": "Adminpanel",

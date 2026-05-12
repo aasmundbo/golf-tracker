@@ -159,7 +159,7 @@
     "title": "Settings",
     "name": "Name",
     "language": "Language",
-    "defaultHcp": "Default handicap index",
+    "defaultHcp": "Your handicap",
     "scoreDisplay": "Score decorations",
     "scoreDisplayNetto": "Netto (adjusted for handicap strokes)",
     "scoreDisplayBrutto": "Brutto (gross score vs par)",
@@ -169,7 +169,11 @@
     "error": "Save failed",
     "deleteAccount": "Delete account",
     "confirmDeleteAccount": "Are you sure you want to delete your account? This cannot be undone.",
-    "deleteAccountError": "Failed to delete account"
+    "deleteAccountError": "Failed to delete account",
+    "hintLanguage": "Changes the language throughout the app. Takes effect when you save.",
+    "hintScoreDisplay": "\"Netto\" shows score and birdie/bogey graphics for your handicap. \"Brutto\" shows for actual strokes.",
+    "hintDefaultHcp": "Filled in automatically when you start a new round. Updated each time you use a different handicap.",
+    "hintTeeGender": "This category appears at the top when starting a new round."
   },
   "admin": {
     "title": "Admin panel",

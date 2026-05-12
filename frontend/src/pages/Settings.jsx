@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import { parseDecimal, formatDecimal } from '../utils/formatters'
+import FieldHint from '../components/FieldHint'
 
 export default function Settings() {
   const { t, i18n } = useTranslation()
@@ -112,6 +113,7 @@ export default function Settings() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('settings.language')}
+            <FieldHint text={t('settings.hintLanguage')} />
           </label>
           <select
             value={lang}
@@ -126,6 +128,7 @@ export default function Settings() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('settings.scoreDisplay')}
+            <FieldHint text={t('settings.hintScoreDisplay')} />
           </label>
           <select
             value={scoreDisplay}
@@ -140,6 +143,7 @@ export default function Settings() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('settings.defaultHcp')}
+            <FieldHint text={t('settings.hintDefaultHcp')} />
           </label>
           <input
             type="text"
