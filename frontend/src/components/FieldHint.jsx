@@ -2,13 +2,22 @@ import { useState, useRef, useEffect } from 'react'
 
 export default function FieldHint({ text }) {
   const [open, setOpen] = useState(false)
-  const [alignRight, setAlignRight] = useState(false)
+  const [style, setStyle] = useState({})
   const ref = useRef(null)
 
   useEffect(() => {
     if (!open || !ref.current) return
+
     const rect = ref.current.getBoundingClientRect()
-    setAlignRight(window.innerWidth - rect.left < 272) // 256px tooltip + 16px margin
+    const tooltipWidth = 256
+    const margin = 8
+    let left = rect.left
+    if (left + tooltipWidth > window.innerWidth - margin) {
+      left = window.innerWidth - tooltipWidth - margin
+    }
+    if (left < margin) left = margin
+    setStyle({ position: 'fixed', top: rect.bottom + 4, left, width: tooltipWidth })
+
     const handler = e => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false)
     }
@@ -34,7 +43,8 @@ export default function FieldHint({ text }) {
       {open && (
         <span
           role="tooltip"
-          className={`absolute ${alignRight ? 'right-0' : 'left-0'} top-6 z-10 w-64 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600 shadow-md`}
+          style={style}
+          className="z-50 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600 shadow-md"
         >
           {text}
         </span>
