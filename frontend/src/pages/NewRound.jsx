@@ -20,7 +20,7 @@ export default function NewRound() {
   const [playingHcp, setPlayingHcp] = useState(null)
   const [manualMode, setManualMode] = useState(false)
   const [manualData, setManualData] = useState({
-    club_name: '', city: '', country: '', course_name: 'Hovedbane', tee_name: '', par_total: '', slope: '', course_rating: '', hcp_index: ''
+    club_name: '', city: '', country: '', course_name: 'Hovedbane', tee_name: '', tee_gender: '', par_total: '', slope: '', course_rating: '', hcp_index: ''
   })
   const [loading, setLoading] = useState(false)
   const [searchLoading, setSearchLoading] = useState(false)
@@ -108,6 +108,7 @@ export default function NewRound() {
           club_name: manualData.club_name,
           course_name: manualData.course_name || manualData.club_name,
           tee_name: manualData.tee_name || undefined,
+          tee_gender: manualData.tee_gender || undefined,
           par_total: manualData.par_total ? parseInt(manualData.par_total) : undefined,
           city: manualData.city || undefined,
           country: manualData.country || undefined,
@@ -141,34 +142,59 @@ export default function NewRound() {
     }
   }
 
-  const MANUAL_FIELDS = ['club_name', 'city', 'country', 'course_name', 'tee_name', 'par_total', 'slope', 'course_rating', 'hcp_index']
-
-  const getInputProps = (f) => {
-    if (['slope', 'course_rating', 'hcp_index'].includes(f))
-      return { type: 'text', inputMode: 'decimal' }
-    if (f === 'par_total')
-      return { type: 'number', inputMode: 'numeric', min: '1' }
-    return {}
-  }
+  const field = (key, inputProps = {}) => (
+    <div key={key}>
+      <label className="block text-sm font-medium">
+        {t(`newRound.manualLabels.${key}`)}
+        <FieldHint text={t(`newRound.manualHints.${key}`)} />
+      </label>
+      <input
+        className="border rounded px-3 py-2 w-full"
+        value={manualData[key]}
+        onChange={e => setManualData(d => ({ ...d, [key]: e.target.value }))}
+        {...inputProps}
+      />
+    </div>
+  )
 
   if (manualMode) {
     return (
       <div className="space-y-4 mt-6">
         <h2 className="text-xl font-bold">{t('newRound.startWithoutDataTitle')}</h2>
-        {MANUAL_FIELDS.map(f => (
-          <div key={f}>
-            <label className="block text-sm font-medium">
-              {t(`newRound.manualLabels.${f}`)}
-              <FieldHint text={t(`newRound.manualHints.${f}`)} />
-            </label>
-            <input
-              className="border rounded px-3 py-2 w-full"
-              value={manualData[f]}
-              onChange={e => setManualData(d => ({ ...d, [f]: e.target.value }))}
-              {...getInputProps(f)}
-            />
+
+        {field('club_name')}
+
+        <div className="grid grid-cols-2 gap-3">
+          {field('city')}
+          {field('country')}
+        </div>
+
+        {field('course_name')}
+
+        <div className="grid grid-cols-2 gap-3">
+          {field('tee_name')}
+          <div>
+            <label className="block text-sm font-medium">{t('newRound.manualLabels.tee_gender')}</label>
+            <select
+              className="border rounded px-3 py-2 w-full bg-white"
+              value={manualData.tee_gender}
+              onChange={e => setManualData(d => ({ ...d, tee_gender: e.target.value }))}
+            >
+              <option value="">—</option>
+              <option value="herre">Herre</option>
+              <option value="dame">Dame</option>
+            </select>
           </div>
-        ))}
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          {field('slope', { type: 'text', inputMode: 'decimal' })}
+          {field('course_rating', { type: 'text', inputMode: 'decimal' })}
+          {field('par_total', { type: 'number', inputMode: 'numeric', min: '1' })}
+        </div>
+
+        {field('hcp_index', { type: 'text', inputMode: 'decimal' })}
+
         <button
           onClick={startRound}
           disabled={loading}
