@@ -226,8 +226,8 @@ function UserCard({ user, onDelete, onSave }) {
               <select className="border rounded px-2 py-1.5 w-full text-sm bg-white"
                 value={form.score_display}
                 onChange={e => setForm(f => ({ ...f, score_display: e.target.value }))}>
-                <option value="netto">Netto</option>
-                <option value="brutto">Brutto</option>
+                <option value="netto">{t('settings.scoreDisplayNetto')}</option>
+                <option value="brutto">{t('settings.scoreDisplayBrutto')}</option>
               </select>
             </div>
           </div>
