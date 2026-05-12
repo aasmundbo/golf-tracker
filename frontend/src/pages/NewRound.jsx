@@ -75,8 +75,10 @@ export default function NewRound() {
 
   const calcPlayingHcp = (tee, hcpVal) => {
     if (!tee || !hcpVal) return
+    const slope = tee.slope_rating || tee.slope
+    if (!slope) return
     const ph = Math.round(
-      parseDecimal(hcpVal) * (tee.slope / 113) + (tee.course_rating - (tee.par_total || 72))
+      parseDecimal(hcpVal) * (slope / 113) + (tee.course_rating - (tee.par_total || 72))
     )
     setPlayingHcp(ph)
   }

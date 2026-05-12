@@ -106,8 +106,13 @@ async def start_round(
 
     elif data.course_source == 'api' and data.external_api_id and not data.tee_id:
         # Fetch cached API course data and materialise local entities so hole
-        # par/SI is available during the round.
-        api_data = await course_api_svc.get_course(data.external_api_id, db)
+        # par/SI is available during the round. Fault-tolerant: if the API
+        # call fails we still create the round without hole data.
+        api_data = None
+        try:
+            api_data = await course_api_svc.get_course(data.external_api_id, db)
+        except Exception:
+            pass
         api_holes: list[dict] = []
         if api_data:
             tees_raw = api_data.get('tees', {})
