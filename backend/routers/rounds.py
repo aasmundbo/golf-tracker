@@ -10,7 +10,6 @@ from models.user import User, UserRole
 from services.handicap import calculate_playing_handicap, calculate_live_stats, calculate_projected_handicap
 from schemas.round import RoundCreate, RoundResponse
 from auth import get_current_user
-from services import course_api as course_api_svc
 
 router = APIRouter(prefix="/api/rounds", tags=["rounds"])
 
@@ -48,7 +47,7 @@ async def start_round(
     playing_hcp = calculate_playing_handicap(
         data.hcp_index, data.slope, data.course_rating, data.par_total or 72
     )
-    round_data = data.model_dump(exclude={'external_api_id'})
+    round_data = data.model_dump(exclude={'external_api_id', 'tee_holes'})
 
     if data.course_source == 'on_the_fly' and not data.tee_id:
         # Resolve club name: prefer explicit club_name, fall back to course_name
@@ -105,30 +104,8 @@ async def start_round(
         round_data['course_source'] = 'local'
 
     elif data.course_source == 'api' and data.external_api_id and not data.tee_id:
-        # Fetch cached API course data and materialise local entities so hole
-        # par/SI is available during the round. Fault-tolerant: if the API
-        # call fails we still create the round without hole data.
-        api_data = None
-        try:
-            api_data = await course_api_svc.get_course(data.external_api_id, db)
-        except Exception:
-            pass
-        api_holes: list[dict] = []
-        if api_data:
-            tees_raw = api_data.get('tees', {})
-            all_api_tees = (
-                tees_raw if isinstance(tees_raw, list)
-                else tees_raw.get('male', []) + tees_raw.get('female', [])
-            )
-            tee_label = data.tee_name or ''
-            matched_api_tee = next(
-                (t for t in all_api_tees
-                 if (t.get('tee_name') or t.get('name') or '').lower() == tee_label.lower()),
-                None,
-            )
-            if matched_api_tee:
-                api_holes = matched_api_tee.get('holes', [])
-
+        # Materialise local entities from hole data forwarded by the frontend
+        # (already present in the TeeSelector response — no second API call needed).
         club_label = data.club_name or data.course_name
         layout_label = data.course_name or 'Bane 1'
         tee_label = data.tee_name or 'Default'
@@ -164,8 +141,8 @@ async def start_round(
             db.add(tee)
             await db.flush()
 
-            # Populate holes from the API response (best-effort)
-            for h in api_holes:
+            # Store hole data forwarded from the frontend (best-effort)
+            for h in (data.tee_holes or []):
                 hole_num = h.get('hole_number') or h.get('number')
                 par = h.get('par')
                 si = h.get('handicap') or h.get('stroke_index')
