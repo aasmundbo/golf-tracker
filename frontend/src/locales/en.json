@@ -213,7 +213,11 @@
     "inactiveUsersDesc": "No round in the last 60 days",
     "sourceLocal": "Local course",
     "sourceApi": "GolfCourseAPI",
-    "sourceOnTheFly": "Manual entry"
+    "sourceOnTheFly": "Manual entry",
+    "sortMostRecent": "Sort: least recent first",
+    "sortLeastRecent": "Sort: most recent first",
+    "daysAgo": "{{count}} days ago",
+    "neverActive": "never played"
   },
   "logout": "Log out",
   "gross": "Gross"

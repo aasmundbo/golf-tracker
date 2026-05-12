@@ -213,7 +213,11 @@
     "inactiveUsersDesc": "Ingen runde siste 60 dager",
     "sourceLocal": "Lokal bane",
     "sourceApi": "GolfCourseAPI",
-    "sourceOnTheFly": "Manuelt lagt inn"
+    "sourceOnTheFly": "Manuelt lagt inn",
+    "sortMostRecent": "Sorter: eldst først",
+    "sortLeastRecent": "Sorter: nyest først",
+    "daysAgo": "for {{count}} dager siden",
+    "neverActive": "aldri spilt"
   },
   "logout": "Logg ut",
   "gross": "Brutto"

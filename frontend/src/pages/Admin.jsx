@@ -4,12 +4,19 @@ import api from '../api/client'
 
 // ── Users tab ──────────────────────────────────────────────────────────────
 
+function daysSince(isoStr) {
+  if (!isoStr) return null
+  const ms = Date.now() - new Date(isoStr).getTime()
+  return Math.floor(ms / 86400000)
+}
+
 function UsersTab() {
   const { t } = useTranslation()
   const [users, setUsers] = useState([])
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState([])
   const [filteredIds, setFilteredIds] = useState(null)
+  const [sortAsc, setSortAsc] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const inputRef = useRef(null)
@@ -26,7 +33,6 @@ function UsersTab() {
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
-  // Debounced autocomplete
   useEffect(() => {
     if (!query || query.length < 1) { setSuggestions([]); return }
     const timer = setTimeout(async () => {
@@ -38,7 +44,6 @@ function UsersTab() {
     return () => clearTimeout(timer)
   }, [query])
 
-  // Close dropdown on outside click
   useEffect(() => {
     if (!suggestions.length) return
     const handler = e => {
@@ -73,9 +78,15 @@ function UsersTab() {
     }
   }
 
+  const sorted = [...users].sort((a, b) => {
+    const da = a.last_active_at ? new Date(a.last_active_at).getTime() : 0
+    const db_ = b.last_active_at ? new Date(b.last_active_at).getTime() : 0
+    return sortAsc ? da - db_ : db_ - da
+  })
+
   const visibleUsers = filteredIds
-    ? users.filter(u => filteredIds.includes(u.id))
-    : users
+    ? sorted.filter(u => filteredIds.includes(u.id))
+    : sorted
 
   return (
     <div className="space-y-3">
@@ -109,6 +120,17 @@ function UsersTab() {
         )}
       </div>
 
+      {!loading && !error && users.length > 0 && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => setSortAsc(v => !v)}
+            className="text-xs text-gray-500 hover:text-gray-800 underline"
+          >
+            {sortAsc ? t('admin.sortMostRecent') : t('admin.sortLeastRecent')}
+          </button>
+        </div>
+      )}
+
       {loading && <p className="text-gray-500 text-sm">{t('activeRound.loading')}</p>}
       {error && <p className="text-red-600 text-sm">{error}</p>}
       {!loading && !error && visibleUsers.length === 0 && (
@@ -116,32 +138,40 @@ function UsersTab() {
       )}
       {!loading && !error && visibleUsers.length > 0 && (
         <ul className="space-y-2">
-          {visibleUsers.map(user => (
-            <li
-              key={user.id}
-              className="flex items-center justify-between bg-white rounded-lg border border-gray-200 px-4 py-3"
-            >
-              <div>
-                <p className="font-medium text-gray-900">{user.name || '—'}</p>
-                <p className="text-sm text-gray-500">{user.email}</p>
-                <p className="text-xs text-gray-400 capitalize">{user.role}</p>
-              </div>
-              {user.role !== 'admin' && (
-                <button
-                  onClick={() => handleDelete(user)}
-                  className="text-sm text-red-600 hover:text-red-800 font-medium"
-                >
-                  {t('admin.delete')}
-                </button>
-              )}
-            </li>
-          ))}
+          {visibleUsers.map(user => {
+            const days = daysSince(user.last_active_at)
+            return (
+              <li
+                key={user.id}
+                className="flex items-center justify-between bg-white rounded-lg border border-gray-200 px-4 py-3"
+              >
+                <div>
+                  <p className="font-medium text-gray-900">{user.name || '—'}</p>
+                  <p className="text-sm text-gray-500">{user.email}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    <span className="capitalize">{user.role}</span>
+                    {days !== null && (
+                      <span className="ml-2">· {t('admin.daysAgo', { count: days })}</span>
+                    )}
+                    {days === null && <span className="ml-2">· {t('admin.neverActive')}</span>}
+                  </p>
+                </div>
+                {user.role !== 'admin' && (
+                  <button
+                    onClick={() => handleDelete(user)}
+                    className="text-sm text-red-600 hover:text-red-800 font-medium"
+                  >
+                    {t('admin.delete')}
+                  </button>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
   )
 }
-
 // ── Stats tab ──────────────────────────────────────────────────────────────
 
 const SOURCE_LABELS = {
