@@ -52,7 +52,10 @@
     "finishRound": "Avslutt runde",
     "deleteRound": "Slett runde",
     "confirmDelete": "Slett denne runden?",
-    "somethingWentWrong": "Noe gikk galt – prøv igjen"
+    "somethingWentWrong": "Noe gikk galt – prøv igjen",
+    "changeHandicap": "Endre handicap",
+    "changeHandicapLabel": "Nytt handicap-indeks",
+    "saveHandicap": "Lagre"
   },
   "history": {
     "title": "Rundehistorikk",

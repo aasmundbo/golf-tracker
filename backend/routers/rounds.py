@@ -252,6 +252,35 @@ async def finish_round(
     await db.commit()
     return round_
 
+@router.patch("/{round_id}/hcp")
+async def update_round_hcp(
+    round_id: int,
+    data: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(Round).where(Round.id == round_id))
+    round_ = result.scalar_one_or_none()
+    if not round_:
+        raise HTTPException(404)
+    _check_ownership(round_, current_user)
+    if round_.status != "active":
+        raise HTTPException(400, "Round is not active")
+    hcp_index = data.get("hcp_index")
+    if hcp_index is None:
+        raise HTTPException(422, "hcp_index required")
+    round_.hcp_index = float(hcp_index)
+    round_.playing_handicap = calculate_playing_handicap(
+        round_.hcp_index, round_.slope or 113.0, round_.course_rating or 72.0, round_.par_total or 72
+    )
+    await db.commit()
+    await db.refresh(round_)
+    scores = await _get_deduped_scores(db, round_id)
+    response = {c.key: getattr(round_, c.key) for c in Round.__table__.columns}
+    response["scores"] = scores
+    return response
+
+
 @router.get("/{round_id}/live")
 async def get_live_stats(
     round_id: int,

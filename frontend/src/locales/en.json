@@ -52,7 +52,10 @@
     "finishRound": "Finish round",
     "deleteRound": "Delete round",
     "confirmDelete": "Delete this round?",
-    "somethingWentWrong": "Something went wrong – please try again"
+    "somethingWentWrong": "Something went wrong – please try again",
+    "changeHandicap": "Change handicap",
+    "changeHandicapLabel": "New handicap index",
+    "saveHandicap": "Save"
   },
   "history": {
     "title": "Round history",
