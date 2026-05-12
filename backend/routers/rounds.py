@@ -10,6 +10,7 @@ from models.user import User, UserRole
 from services.handicap import calculate_playing_handicap, calculate_live_stats, calculate_projected_handicap
 from schemas.round import RoundCreate, RoundResponse
 from auth import get_current_user
+from services import course_api as course_api_svc
 
 router = APIRouter(prefix="/api/rounds", tags=["rounds"])
 
@@ -102,6 +103,79 @@ async def start_round(
         round_data['course_id'] = layout.id
         round_data['tee_id'] = tee.id
         round_data['course_source'] = 'local'
+
+    elif data.course_source == 'api' and data.external_api_id and not data.tee_id:
+        # Fetch cached API course data and materialise local entities so hole
+        # par/SI is available during the round.
+        api_data = await course_api_svc.get_course(data.external_api_id, db)
+        api_holes: list[dict] = []
+        if api_data:
+            tees_raw = api_data.get('tees', {})
+            all_api_tees = (
+                tees_raw if isinstance(tees_raw, list)
+                else tees_raw.get('male', []) + tees_raw.get('female', [])
+            )
+            tee_label = data.tee_name or ''
+            matched_api_tee = next(
+                (t for t in all_api_tees
+                 if (t.get('tee_name') or t.get('name') or '').lower() == tee_label.lower()),
+                None,
+            )
+            if matched_api_tee:
+                api_holes = matched_api_tee.get('holes', [])
+
+        club_label = data.club_name or data.course_name
+        layout_label = data.course_name or 'Bane 1'
+        tee_label = data.tee_name or 'Default'
+
+        club_result = await db.execute(select(LocalClub).where(LocalClub.name.ilike(club_label)))
+        club = club_result.scalar_one_or_none()
+        if not club:
+            club = LocalClub(name=club_label, city=data.city, country=data.country)
+            db.add(club)
+            await db.flush()
+
+        layout_result = await db.execute(
+            select(LocalCourse).where(LocalCourse.club_id == club.id, LocalCourse.name.ilike(layout_label))
+        )
+        layout = layout_result.scalar_one_or_none()
+        if not layout:
+            layout = LocalCourse(club_id=club.id, name=layout_label, external_api_id=data.external_api_id)
+            db.add(layout)
+            await db.flush()
+
+        tee_result = await db.execute(
+            select(LocalTee).where(LocalTee.course_id == layout.id, LocalTee.name.ilike(tee_label))
+        )
+        tee = tee_result.scalar_one_or_none()
+        if not tee:
+            tee = LocalTee(
+                course_id=layout.id,
+                name=tee_label,
+                slope=data.slope,
+                course_rating=data.course_rating,
+                par_total=data.par_total,
+            )
+            db.add(tee)
+            await db.flush()
+
+            # Populate holes from the API response (best-effort)
+            for h in api_holes:
+                hole_num = h.get('hole_number') or h.get('number')
+                par = h.get('par')
+                si = h.get('handicap') or h.get('stroke_index')
+                if hole_num and par:
+                    db.add(LocalHole(
+                        tee_id=tee.id,
+                        hole_number=int(hole_num),
+                        par=int(par),
+                        stroke_index=int(si) if si else None,
+                    ))
+
+        round_data['club_id'] = club.id
+        round_data['club_name'] = club.name
+        round_data['course_id'] = layout.id
+        round_data['tee_id'] = tee.id
 
     round_ = Round(
         **round_data,

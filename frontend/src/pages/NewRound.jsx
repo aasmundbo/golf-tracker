@@ -129,6 +129,9 @@ export default function NewRound() {
           course_rating: selectedTee?.course_rating,
           par_total: selectedTee?.par_total,
           hcp_index: parseDecimal(hcp),
+          ...(selected?.source === 'api' && selected?.id
+            ? { external_api_id: selected.id.split(':').slice(1).join(':') }
+            : {}),
         }
       }
       const res = await api.post('/rounds', payload)
