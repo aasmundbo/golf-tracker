@@ -79,8 +79,8 @@ function UsersTab() {
   }
 
   const sorted = [...users].sort((a, b) => {
-    const da = a.last_active_at ? new Date(a.last_active_at).getTime() : 0
-    const db_ = b.last_active_at ? new Date(b.last_active_at).getTime() : 0
+    const da = a.last_login_at ? new Date(a.last_login_at).getTime() : 0
+    const db_ = b.last_login_at ? new Date(b.last_login_at).getTime() : 0
     return sortAsc ? da - db_ : db_ - da
   })
 
@@ -139,7 +139,7 @@ function UsersTab() {
       {!loading && !error && visibleUsers.length > 0 && (
         <ul className="space-y-2">
           {visibleUsers.map(user => {
-            const days = daysSince(user.last_active_at)
+            const days = daysSince(user.last_login_at)
             return (
               <li
                 key={user.id}

@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, func
-from datetime import datetime, timezone
+from sqlalchemy import select, update, delete
 from typing import Literal, Optional
 from auth import get_current_user
 from database import get_db
@@ -95,23 +94,13 @@ async def list_users(
         )
         users = result.scalars().all()
         return [UserSearchResult(id=u.id, display_name=u.name, email=u.email) for u in users]
-    rows = (await session.execute(
-        select(
-            User,
-            func.max(Round.started_at).label("last_active_at"),
-            func.count(Round.id).label("round_count"),
-        )
-        .outerjoin(Round, Round.user_id == User.id)
-        .group_by(User.id)
-    )).all()
-    now = datetime.now(timezone.utc)
-    result = []
-    for user, last_active_at, round_count in rows:
-        d = UserResponse.model_validate(user).model_dump()
-        d["last_active_at"] = last_active_at.isoformat() if last_active_at else None
-        d["round_count"] = round_count
-        result.append(d)
-    return result
+    result = await session.execute(select(User))
+    users = result.scalars().all()
+    return [
+        {**UserResponse.model_validate(u).model_dump(),
+         "last_login_at": u.last_login_at.isoformat() if u.last_login_at else None}
+        for u in users
+    ]
 
 
 @router.delete("/me", status_code=204)
