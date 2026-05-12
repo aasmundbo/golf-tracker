@@ -123,7 +123,8 @@
     "reportIssue": "Rapporter problem",
     "reportIssueTitle": "Problem med tee: {{teeName}} ({{courseName}})",
     "reportIssueBody": "**Bane:** {{courseName}}\n**Tee:** {{teeName}}\n\n**Beskriv problemet:**\n\n",
-    "parAutoNote": "par-feltet kan overstyres, eller beregnes automatisk som sum av hull-parene"
+    "parAutoNote": "par-feltet kan overstyres, eller beregnes automatisk som sum av hull-parene",
+    "play": "Spill"
   },
   "holeCard": {
     "hole": "Hull",

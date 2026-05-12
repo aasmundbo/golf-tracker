@@ -123,7 +123,8 @@
     "reportIssue": "Report issue",
     "reportIssueTitle": "Problem with tee: {{teeName}} ({{courseName}})",
     "reportIssueBody": "**Course:** {{courseName}}\n**Tee:** {{teeName}}\n\n**Describe the issue:**\n\n",
-    "parAutoNote": "par field can be overridden, or calculated automatically as the sum of hole pars"
+    "parAutoNote": "par field can be overridden, or calculated automatically as the sum of hole pars",
+    "play": "Play"
   },
   "holeCard": {
     "hole": "Hole",
