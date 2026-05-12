@@ -261,9 +261,9 @@ export default function NewRound() {
                   {r.city}{r.country ? `, ${r.country}` : ''}
                 </span>
               )}
-              <span className={`text-xs ml-2 px-1 rounded ${r.source === 'local' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100'}`}>
-                {r.source}
-              </span>
+              {r.source === 'api' && (
+                <span className="text-xs ml-2 px-1 rounded bg-gray-100 text-gray-500">GolfCourseAPI</span>
+              )}
             </li>
           ))}
         </ul>
