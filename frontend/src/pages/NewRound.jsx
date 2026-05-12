@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../api/client'
 import TeeSelector from '../components/TeeSelector'
@@ -27,27 +27,10 @@ export default function NewRound() {
   const [hasSearched, setHasSearched] = useState(false)
   const [recentCourses, setRecentCourses] = useState([])
   const navigate = useNavigate()
-  const location = useLocation()
 
   useEffect(() => {
     api.get('/rounds/recent-courses').then(r => setRecentCourses(r.data)).catch(() => {})
   }, [])
-
-  useEffect(() => {
-    const s = location.state
-    if (!s?.tee_id) return
-    const tee = { id: s.tee_id, name: s.tee_name, slope: s.slope, course_rating: s.course_rating, par_total: s.par_total }
-    const label = s.club_name ? `${s.club_name} — ${s.course_name}` : (s.course_name || '')
-    setQuery(label)
-    setSelected({ source: 'local', club_name: s.club_name, name: s.course_name })
-    setSelectedTee(tee)
-    setResults([])
-    window.history.replaceState({}, '')
-  }, [])
-
-  useEffect(() => {
-    if (selectedTee && hcp) calcPlayingHcp(selectedTee, hcp)
-  }, [selectedTee, hcp])
 
   useEffect(() => {
     api.get('/users/me').then(r => {

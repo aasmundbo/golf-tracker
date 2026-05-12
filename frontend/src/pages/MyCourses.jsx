@@ -1,3 +1,38 @@
+function PlayButton({ tee, course, layout, defaultHcp, navigate, label }) {
+  const [loading, setLoading] = useState(false)
+
+  const handlePlay = async (e) => {
+    e.stopPropagation()
+    setLoading(true)
+    try {
+      const res = await api.post('/rounds', {
+        course_source: 'local',
+        club_name: course.name,
+        course_name: layout.name,
+        tee_name: tee.name,
+        tee_id: tee.id,
+        slope: tee.slope,
+        course_rating: tee.course_rating,
+        par_total: tee.par_total,
+        hcp_index: defaultHcp ?? 0,
+      })
+      navigate(`/round/${res.data.id}`)
+    } catch {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={handlePlay}
+      disabled={loading}
+      className="text-xs border border-green-700 text-green-700 rounded px-2 py-0.5 hover:bg-green-50 disabled:opacity-50"
+    >
+      {loading ? '…' : label}
+    </button>
+  )
+}
+
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -557,20 +592,14 @@ export default function MyCourses() {
                                 <span className="text-xs text-green-700">{t('myCourses.holesSaved')}</span>
                               )}
                               {currentUser?.role !== 'admin' && editingTee !== tee.id && (
-                                <button
-                                  onClick={() => navigate('/new-round', { state: {
-                                    tee_id: tee.id,
-                                    tee_name: tee.name,
-                                    slope: tee.slope,
-                                    course_rating: tee.course_rating,
-                                    par_total: tee.par_total,
-                                    club_name: course.name,
-                                    course_name: layout.name,
-                                  }})}
-                                  className="text-xs border border-green-700 text-green-700 rounded px-2 py-0.5 hover:bg-green-50"
-                                >
-                                  {t('myCourses.play')}
-                                </button>
+                                <PlayButton
+                                  tee={tee}
+                                  course={course}
+                                  layout={layout}
+                                  defaultHcp={currentUser?.default_hcp_index}
+                                  navigate={navigate}
+                                  label={t('myCourses.play')}
+                                />
                               )}
                               {(canDelete(tee.created_by) || canDelete(layout.created_by)) && (
                                 <button
