@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next'
 import api from '../api/client'
 import { parseDecimal, formatDecimal } from '../utils/formatters'
 
-const EMPTY_COURSE_FORM = { name: '', city: '', country: '', layout_name: 'Hovedbane', tee_name: 'Gul', slope: '', course_rating: '', par_total: '' }
-const EMPTY_LAYOUT_FORM = { name: '', slope: '', course_rating: '', par_total: '', tee_name: '' }
-const EMPTY_TEE_FORM = { name: '', slope: '', course_rating: '', par_total: '' }
+const EMPTY_COURSE_FORM = { name: '', city: '', country: '', layout_name: 'Hovedbane', tee_name: 'Gul', slope: '', course_rating: '', par_total: '', gender: '' }
+const EMPTY_LAYOUT_FORM = { name: '', slope: '', course_rating: '', par_total: '', tee_name: '', gender: '' }
+const EMPTY_TEE_FORM = { name: '', slope: '', course_rating: '', par_total: '', gender: '' }
 
 const emptyHoleRow = (n) => ({ hole_number: n, par: '', stroke_index: '' })
 const emptyHoles = () => Array.from({ length: 18 }, (_, i) => emptyHoleRow(i + 1))
@@ -146,6 +146,7 @@ export default function MyCourses() {
       slope: tee.slope != null ? formatDecimal(tee.slope, locale) : '',
       course_rating: tee.course_rating != null ? formatDecimal(tee.course_rating, locale) : '',
       par_total: tee.par_total ?? '',
+      gender: tee.gender ?? '',
       holes: rows.map(r => ({ ...r })),
     })
     setTeeEditError(null)
@@ -185,6 +186,7 @@ export default function MyCourses() {
         slope: teeEditForm.slope !== '' ? parseDecimal(teeEditForm.slope) : null,
         course_rating: teeEditForm.course_rating !== '' ? parseDecimal(teeEditForm.course_rating) : null,
         par_total: teeEditForm.par_total !== '' ? parseInt(teeEditForm.par_total) : null,
+        gender: teeEditForm.gender || null,
       })
       const holes = teeEditForm.holes.map(r => ({
         hole_number: r.hole_number,
@@ -246,6 +248,7 @@ export default function MyCourses() {
           slope: courseForm.slope ? parseDecimal(courseForm.slope) : undefined,
           course_rating: courseForm.course_rating ? parseDecimal(courseForm.course_rating) : undefined,
           par_total: courseForm.par_total ? parseInt(courseForm.par_total) : undefined,
+          gender: courseForm.gender || undefined,
         })
       }
       setAddingCourse(false)
@@ -276,6 +279,7 @@ export default function MyCourses() {
       slope: layoutForm.slope ? parseDecimal(layoutForm.slope) : undefined,
       course_rating: layoutForm.course_rating ? parseDecimal(layoutForm.course_rating) : undefined,
       par_total: layoutForm.par_total ? parseInt(layoutForm.par_total) : undefined,
+      gender: layoutForm.gender || undefined,
     })
     setAddingLayoutTo(null)
     setLayoutForm(EMPTY_LAYOUT_FORM)
@@ -299,6 +303,7 @@ export default function MyCourses() {
       slope: teeForm.slope ? parseDecimal(teeForm.slope) : undefined,
       course_rating: teeForm.course_rating ? parseDecimal(teeForm.course_rating) : undefined,
       par_total: teeForm.par_total ? parseInt(teeForm.par_total) : undefined,
+      gender: teeForm.gender || undefined,
     })
     setAddingTeeTo(null)
     setTeeForm(EMPTY_TEE_FORM)
@@ -378,6 +383,18 @@ export default function MyCourses() {
                     value={courseForm.tee_name}
                     onChange={e => setCourseForm(d => ({ ...d, tee_name: e.target.value }))}
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Kjønn</label>
+                  <select
+                    className="border rounded px-3 py-2 w-full"
+                    value={courseForm.gender}
+                    onChange={e => setCourseForm(d => ({ ...d, gender: e.target.value }))}
+                  >
+                    <option value="">— ingen —</option>
+                    <option value="herre">Herre</option>
+                    <option value="dame">Dame</option>
+                  </select>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2">
@@ -520,7 +537,15 @@ export default function MyCourses() {
                           {/* Tee summary row */}
                           <div className="flex justify-between items-center text-sm text-gray-700">
                             <div className="flex flex-col gap-0.5">
-                              <span className="font-medium">{tee.name}</span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-medium">{tee.name}</span>
+                                {tee.gender === 'herre' && (
+                                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">Herre</span>
+                                )}
+                                {tee.gender === 'dame' && (
+                                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-pink-100 text-pink-700 font-medium">Dame</span>
+                                )}
+                              </div>
                               <span className="text-gray-400 text-xs">
                                 Slope {tee.slope != null ? formatDecimal(tee.slope, locale) : '–'} · CR {tee.course_rating != null ? formatDecimal(tee.course_rating, locale) : '–'} · Par {tee.par_total ?? '–'}
                               </span>
@@ -579,14 +604,28 @@ export default function MyCourses() {
                           {/* Unified edit panel */}
                           {editingTee === tee.id && teeEditForm && (
                             <div className="mt-3 space-y-3 border-t pt-3">
-                              {/* Tee name */}
-                              <div>
-                                <label className="block text-xs font-medium text-gray-600">{t('myCourses.teeName')}</label>
-                                <input
-                                  className="border rounded px-2 py-1 w-full text-sm"
-                                  value={teeEditForm.name}
-                                  onChange={e => updateTeeEditMeta('name', e.target.value)}
-                                />
+                              {/* Tee name + gender */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600">{t('myCourses.teeName')}</label>
+                                  <input
+                                    className="border rounded px-2 py-1 w-full text-sm"
+                                    value={teeEditForm.name}
+                                    onChange={e => updateTeeEditMeta('name', e.target.value)}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600">Kjønn</label>
+                                  <select
+                                    className="border rounded px-2 py-1 w-full text-sm"
+                                    value={teeEditForm.gender}
+                                    onChange={e => updateTeeEditMeta('gender', e.target.value)}
+                                  >
+                                    <option value="">— ingen —</option>
+                                    <option value="herre">Herre</option>
+                                    <option value="dame">Dame</option>
+                                  </select>
+                                </div>
                               </div>
 
                               {/* Slope / CR / Par grid */}
@@ -677,14 +716,28 @@ export default function MyCourses() {
                       {/* Add tee inline form */}
                       {addingTeeTo === layout.id ? (
                         <div className="pt-2 space-y-2">
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600">{t('myCourses.teeName')}</label>
-                            <input
-                              className="border rounded px-2 py-1 w-full text-sm"
-                              placeholder={t('myCourses.teeNamePlaceholder')}
-                              value={teeForm.name}
-                              onChange={e => setTeeForm(d => ({ ...d, name: e.target.value }))}
-                            />
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600">{t('myCourses.teeName')}</label>
+                              <input
+                                className="border rounded px-2 py-1 w-full text-sm"
+                                placeholder={t('myCourses.teeNamePlaceholder')}
+                                value={teeForm.name}
+                                onChange={e => setTeeForm(d => ({ ...d, name: e.target.value }))}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600">Kjønn</label>
+                              <select
+                                className="border rounded px-2 py-1 w-full text-sm"
+                                value={teeForm.gender}
+                                onChange={e => setTeeForm(d => ({ ...d, gender: e.target.value }))}
+                              >
+                                <option value="">— ingen —</option>
+                                <option value="herre">Herre</option>
+                                <option value="dame">Dame</option>
+                              </select>
+                            </div>
                           </div>
                           <div className="grid grid-cols-3 gap-2">
                             {[['slope', 'Slope'], ['course_rating', 'CR'], ['par_total', 'Par']].map(([field, label]) => (
@@ -755,16 +808,30 @@ export default function MyCourses() {
                       </div>
                     ))}
                   </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600">
-                      {t('myCourses.teeNameOptional')} <span className="text-gray-400 font-normal">{t('myCourses.teeNameOptionalNote')}</span>
-                    </label>
-                    <input
-                      className="border rounded px-2 py-1 w-full text-sm"
-                      placeholder={t('myCourses.teeNameOptionalPlaceholder')}
-                      value={layoutForm.tee_name}
-                      onChange={e => setLayoutForm(d => ({ ...d, tee_name: e.target.value }))}
-                    />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600">
+                        {t('myCourses.teeNameOptional')} <span className="text-gray-400 font-normal">{t('myCourses.teeNameOptionalNote')}</span>
+                      </label>
+                      <input
+                        className="border rounded px-2 py-1 w-full text-sm"
+                        placeholder={t('myCourses.teeNameOptionalPlaceholder')}
+                        value={layoutForm.tee_name}
+                        onChange={e => setLayoutForm(d => ({ ...d, tee_name: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600">Kjønn</label>
+                      <select
+                        className="border rounded px-2 py-1 w-full text-sm"
+                        value={layoutForm.gender}
+                        onChange={e => setLayoutForm(d => ({ ...d, gender: e.target.value }))}
+                      >
+                        <option value="">— ingen —</option>
+                        <option value="herre">Herre</option>
+                        <option value="dame">Dame</option>
+                      </select>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button

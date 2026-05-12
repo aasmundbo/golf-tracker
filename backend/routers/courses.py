@@ -89,6 +89,7 @@ async def create_layout(
             slope=data.slope,
             course_rating=data.course_rating,
             par_total=data.par_total,
+            gender=data.gender,
         ))
     await db.commit()
     await db.refresh(layout)
@@ -254,6 +255,7 @@ async def duplicate_tee(tee_id: int, db: AsyncSession = Depends(get_db)):
         slope=src.slope,
         course_rating=src.course_rating,
         par_total=src.par_total,
+        gender=src.gender,
     )
     db.add(new_tee)
     await db.flush()

@@ -18,6 +18,7 @@ class LayoutCreate(BaseModel):
     slope: Optional[float] = None
     course_rating: Optional[float] = None
     par_total: Optional[int] = None
+    gender: Optional[str] = None
 
 class LayoutUpdate(BaseModel):
     name: Optional[str] = None
@@ -39,6 +40,7 @@ class TeeCreate(BaseModel):
     slope: Optional[float] = None
     course_rating: Optional[float] = None
     par_total: Optional[int] = None
+    gender: Optional[str] = None
 
 class TeeUpdate(BaseModel):
     name: Optional[str] = None
@@ -46,6 +48,7 @@ class TeeUpdate(BaseModel):
     slope: Optional[float] = None
     course_rating: Optional[float] = None
     par_total: Optional[int] = None
+    gender: Optional[str] = None
 
 class HoleUpsert(BaseModel):
     hole_number: int
@@ -69,5 +72,6 @@ class TeeResponse(BaseModel):
     slope: Optional[float]
     course_rating: Optional[float]
     par_total: Optional[int]
+    gender: Optional[str] = None
     class Config:
         from_attributes = True

@@ -42,6 +42,7 @@ class LocalTee(Base):
     slope = Column(Float)
     course_rating = Column(Float)
     par_total = Column(Integer)
+    gender = Column(String(10), nullable=True)
     created_at = Column(DateTime, default=_utcnow)
     course = relationship("LocalCourse", back_populates="tees")
     holes = relationship("LocalHole", back_populates="tee", cascade="all, delete-orphan", order_by="LocalHole.hole_number")
