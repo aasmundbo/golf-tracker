@@ -131,10 +131,6 @@ export default function NewRound() {
           course_rating: selectedTee?.course_rating,
           par_total: selectedTee?.par_total,
           hcp_index: parseDecimal(hcp),
-          ...(selected?.source === 'api' && selected?.id ? {
-            external_api_id: selected.id.split(':').slice(1).join(':'),
-            tee_holes: selectedTee?.holes ?? [],
-          } : {}),
         }
       }
       const res = await api.post('/rounds', payload)
@@ -266,9 +262,6 @@ export default function NewRound() {
                 <span className="text-sm text-gray-500 ml-2">
                   {r.city}{r.country ? `, ${r.country}` : ''}
                 </span>
-              )}
-              {r.source === 'api' && (
-                <span className="text-xs ml-2 px-1 rounded bg-gray-100 text-gray-500">GolfCourseAPI</span>
               )}
             </li>
           ))}

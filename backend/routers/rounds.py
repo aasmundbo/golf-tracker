@@ -47,7 +47,7 @@ async def start_round(
     playing_hcp = calculate_playing_handicap(
         data.hcp_index, data.slope, data.course_rating, data.par_total or 72
     )
-    round_data = data.model_dump(exclude={'external_api_id', 'tee_holes'})
+    round_data = data.model_dump()
 
     if data.course_source == 'on_the_fly' and not data.tee_id:
         # Resolve club name: prefer explicit club_name, fall back to course_name
@@ -102,62 +102,6 @@ async def start_round(
         round_data['course_id'] = layout.id
         round_data['tee_id'] = tee.id
         round_data['course_source'] = 'local'
-
-    elif data.course_source == 'api' and data.external_api_id and not data.tee_id:
-        # Materialise local entities from hole data forwarded by the frontend
-        # (already present in the TeeSelector response — no second API call needed).
-        club_label = data.club_name or data.course_name
-        layout_label = data.course_name or 'Bane 1'
-        tee_label = data.tee_name or 'Default'
-
-        club_result = await db.execute(select(LocalClub).where(LocalClub.name.ilike(club_label)))
-        club = club_result.scalar_one_or_none()
-        if not club:
-            club = LocalClub(name=club_label, city=data.city, country=data.country)
-            db.add(club)
-            await db.flush()
-
-        layout_result = await db.execute(
-            select(LocalCourse).where(LocalCourse.club_id == club.id, LocalCourse.name.ilike(layout_label))
-        )
-        layout = layout_result.scalar_one_or_none()
-        if not layout:
-            layout = LocalCourse(club_id=club.id, name=layout_label, external_api_id=data.external_api_id)
-            db.add(layout)
-            await db.flush()
-
-        tee_result = await db.execute(
-            select(LocalTee).where(LocalTee.course_id == layout.id, LocalTee.name.ilike(tee_label))
-        )
-        tee = tee_result.scalar_one_or_none()
-        if not tee:
-            tee = LocalTee(
-                course_id=layout.id,
-                name=tee_label,
-                slope=data.slope,
-                course_rating=data.course_rating,
-                par_total=data.par_total,
-            )
-            db.add(tee)
-            await db.flush()
-
-            # Store hole data forwarded from the frontend (best-effort)
-            for h in (data.tee_holes or []):
-                hole_num = h.get('hole_number') or h.get('number')
-                par = h.get('par')
-                si = h.get('handicap') or h.get('stroke_index')
-                if hole_num and par:
-                    db.add(LocalHole(
-                        tee_id=tee.id,
-                        hole_number=int(hole_num),
-                        par=int(par),
-                        stroke_index=int(si) if si else None,
-                    ))
-
-        round_data['club_id'] = club.id
-        round_data['club_name'] = club.name
-        round_data['course_id'] = layout.id
-        round_data['tee_id'] = tee.id
 
     round_ = Round(
         **round_data,

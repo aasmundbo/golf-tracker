@@ -15,8 +15,6 @@ class RoundCreate(BaseModel):
     city: Optional[str] = None
     country: Optional[str] = None
     hcp_index: float = Field(..., ge=0.0, le=54.0)
-    external_api_id: Optional[str] = None
-    tee_holes: Optional[list] = None  # hole data forwarded from API response
 
 class RoundResponse(BaseModel):
     id: int

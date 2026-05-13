@@ -9,14 +9,7 @@ export default function TeeSelector({ courseDetail, preferredGender, onSelect })
   const course = courseDetail?.course
   if (!course) return null
 
-  let tees = []
-  if (course.tees) {
-    if (Array.isArray(course.tees)) {
-      tees = course.tees
-    } else {
-      tees = [...(course.tees.male || []), ...(course.tees.female || [])]
-    }
-  }
+  const tees = Array.isArray(course.tees) ? course.tees : []
 
   const preferredTees = preferredGender ? tees.filter(t => t.gender === preferredGender) : []
   const otherTees = preferredGender ? tees.filter(t => t.gender !== preferredGender) : tees
